@@ -255,11 +255,11 @@ function render(){
 
   const nc = $('#nowCalling');
   const lp = S.last && S.patients.find(p => p.id === S.last.id);
-  const ecgBgSvg = `<div class="ecg-bg"><svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 1200 100"><path class="ecg-path" d="M0,50 L200,50 L220,10 L240,90 L260,30 L280,70 L300,50 L1200,50"/></svg></div>`;
+  const ecgBgSvg = '<div class="ecg-bg"><svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 1200 100"><path class="ecg-path" d="M0,50 L200,50 L220,10 L240,90 L260,30 L280,70 L300,50 L1200,50"/></svg></div>';
 
   if (lp){
     const l = L[lp.level];
-    nc.innerHTML = ecgBgSvg + `<span class="label">กำลังเรียก</span><span class="q" style="background:${l.color};color:${l.text}">${esc(lp.q)}</span><span class="lvl" style="background:${l.color};color:${l.text}">${l.name}</span><span class="info">คุณ${esc(publicName(lp))} (${esc(lp.serviceStatus)})</span><span class="room">➜ ${esc(lp.room)}</span>`;
+    nc.innerHTML = ecgBgSvg + '<span class="label">กำลังเรียก</span><span class="q" style="background:' + l.color + ';color:' + l.text + '">' + esc(lp.q) + '</span><span class="lvl" style="background:' + l.color + ';color:' + l.text + '">' + l.name + '</span><span class="info">คุณ' + esc(publicName(lp)) + ' (' + esc(lp.serviceStatus) + ')</span><span class="room">➜ ' + esc(lp.room) + '</span>';
   } else {
     nc.innerHTML = ecgBgSvg + '<span class="info">รอเรียกคิว...</span>';
   }
@@ -271,27 +271,29 @@ function render(){
 
   $('#lanes').innerHTML = LEVELS.map(l => {
     const list = S.patients.filter(p => p.level === l.key && p.status !== 'done').sort((a, b) => a.regAt - b.regAt);
-    const items = list.slice(0, CONFIG.MAX_PER_LANE).map(p => `
-      <li class="${p.status === 'called' ? 'called' : ''} ${isOver(p) ? 'overdue' : ''}">
-        <b class="qb" style="background:${l.color};color:${l.text}">${esc(p.q)}</b>
-        <div><div>${esc(publicName(p))}</div><span class="status-badge">${esc(p.serviceStatus)}</span></div>
-        <span class="wait">${p.status === 'called' ? '➜ ' + esc(p.room) : waitMin(p) + ' นาที'}</span>
-      </li>`).join('');
+    const items = list.slice(0, CONFIG.MAX_PER_LANE).map(p => 
+      '<li class="' + (p.status === 'called' ? 'called' : '') + ' ' + (isOver(p) ? 'overdue' : '') + '">' +
+      '<b class="qb" style="background:' + l.color + ';color:' + l.text + '">' + esc(p.q) + '</b>' +
+      '<div><div>' + esc(publicName(p)) + '</div><span class="status-badge">' + esc(p.serviceStatus) + '</span></div>' +
+      '<span class="wait">' + (p.status === 'called' ? '➜ ' + esc(p.room) : waitMin(p) + ' นาที') + '</span>' +
+      '</li>'
+    ).join('');
     const extra = list.length - CONFIG.MAX_PER_LANE;
-    return `<div class="lane"><h2 style="background:${l.color};color:${l.text}">${l.name}<small>${l.label} · ${list.length} ราย</small></h2><ul>${items || '<div class="empty">— ไม่มีคิว —</div>'}</ul>${extra > 0 ? `<div class="more">และอีก ${extra} ราย</div>` : ''}</div>`;
+    return '<div class="lane"><h2 style="background:' + l.color + ';color:' + l.text + '">' + l.name + '<small>' + l.label + ' · ' + list.length + ' ราย</small></h2><ul>' + (items || '<div class="empty">— ไม่มีคิว —</div>') + '</ul>' + (extra > 0 ? '<div class="more">และอีก ' + extra + ' ราย</div>' : '') + '</div>';
   }).join('');
 
   const active = S.patients.filter(p => p.status !== 'done').sort((a, b) => levelOrder(a.level) - levelOrder(b.level) || a.regAt - b.regAt);
-  $('#tbody').innerHTML = active.map(p => `
-    <tr>
-      <td><b>${esc(p.q)}</b>${p.manual ? ' <small class="manual">(ลงเอง)</small>' : ''}</td>
-      <td>${esc(p.first + ' ' + p.last)}<br><small>บนจอ: ${esc(publicName(p))}</small></td>
-      <td>${tag(L[p.level])}</td>
-      <td><select onchange="updateServiceStatus(${p.id}, this.value)">${buildStatusOptions(p.serviceStatus)}</select></td>
-      <td class="${isOver(p) ? 'over' : ''}">${waitMin(p)}</td>
-      <td>${p.status === 'waiting' ? 'รอเรียก' : 'เรียกแล้ว ➜ ' + esc(p.room)}</td>
-      <td><button onclick="callPatient(${p.id}, getRoom())">${p.status === 'waiting' ? 'เรียก' : 'เรียกซ้ำ'}</button><button class="ok" onclick="done(${p.id})">เสร็จ</button></td>
-    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center" class="muted">ไม่มีผู้ป่วยในคิว</td></tr>';
+  $('#tbody').innerHTML = active.map(p => 
+    '<tr>' +
+    '<td><b>' + esc(p.q) + '</b>' + (p.manual ? ' <small class="manual">(ลงเอง)</small>' : '') + '</td>' +
+    '<td>' + esc(p.first + ' ' + p.last) + '<br><small>บนจอ: ' + esc(publicName(p)) + '</small></td>' +
+    '<td>' + tag(L[p.level]) + '</td>' +
+    '<td><select onchange="updateServiceStatus(' + p.id + ', this.value)">' + buildStatusOptions(p.serviceStatus) + '</select></td>' +
+    '<td class="' + (isOver(p) ? 'over' : '') + '">' + waitMin(p) + '</td>' +
+    '<td>' + (p.status === 'waiting' ? 'รอเรียก' : 'เรียกแล้ว ➜ ' + esc(p.room)) + '</td>' +
+    '<td><button onclick="callPatient(' + p.id + ', getRoom())">' + (p.status === 'waiting' ? 'เรียก' : 'เรียกซ้ำ') + '</button><button class="ok" onclick="done(' + p.id + ')">เสร็จ</button></td>' +
+    '</tr>'
+  ).join('') || '<tr><td colspan="7" style="text-align:center" class="muted">ไม่มีผู้ป่วยในคิว</td></tr>';
 }
 
 function updatePreview(){
@@ -301,14 +303,14 @@ function updatePreview(){
   let qText;
   if (mq.trim()){ const r = normalizeQ(mq); qText = r.error ? '⚠️ ' + r.error : r.q; }
   else qText = nextAutoQ().q + ' (อัตโนมัติ)';
-  $('#preview').textContent = (f && l) ? `จอจะแสดง: ${qText} [${lv.name}]  ${f} ${maskSurname(l)}` : `เลขคิว: ${qText} [${lv.name}]`;
+  $('#preview').textContent = (f && l) ? 'จอจะแสดง: ' + qText + ' [' + lv.name + ']  ' + f + ' ' + maskSurname(l) : 'เลขคิว: ' + qText + ' [' + lv.name + ']';
 }
 
 socket.on('init-state', (st) => {
   S = st;
   lastTs = S.last ? S.last.ts : null;
-  $('#fLevel').innerHTML = LEVELS.map(l => `<option value="${l.key}">${l.name} – ${l.label}</option>`).join('');
-  $('#roomSel').innerHTML = ROOMS.map(r => `<option>${esc(r)}</option>`).join('');
+  $('#fLevel').innerHTML = LEVELS.map(l => '<option value="' + l.key + '">' + l.name + ' – ' + l.label + '</option>').join('');
+  $('#roomSel').innerHTML = ROOMS.map(r => '<option>' + esc(r) + '</option>').join('');
   render();
   updatePreview();
 });
