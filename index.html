@@ -88,7 +88,7 @@ td small{color:#64748b}
   <div id="soundHint">🔇 คลิกหน้าจอ 1 ครั้งเพื่อเปิดเสียงประกาศ</div>
 </section>
 
-<section id="staff">
+<section id="staff" class="hidden">
   <h2>🩺 แผงควบคุมเจ้าหน้าที่ (Triage) — โรงพยาบาลบางแพ</h2>
   <div class="card">
     <h3>ลงทะเบียน / คัดกรอง</h3>
@@ -120,17 +120,6 @@ td small{color:#64748b}
 
 <script>
 const socket = io();
-socket.on('connect', () => {
-  document.getElementById('connectionStatus').textContent = '● เชื่อมต่อ Realtime แล้ว';
-  document.getElementById('connectionStatus').classList.add('connected');
-});
-socket.on('disconnect', () => {
-  document.getElementById('connectionStatus').textContent = '● ขาดการเชื่อมต่อ';
-  document.getElementById('connectionStatus').classList.remove('connected');
-});
-socket.on('init-state', (st) => { S = st; lastTs = S.last ? S.last.ts : null; render(); updatePreview(); });
-socket.on('sync-state', (st) => { S = st; render(); });
-
 const CONFIG = { MAX_PER_LANE: 8, ANNOUNCE_TIMES: 1, MAX_Q_DIGITS: 3 };
 const LEVELS = [
   {key:'red', name:'แดง', label:'วิกฤต', target:0, color:'#dc2626', text:'#fff'},
@@ -262,7 +251,7 @@ const levelOrder = k => LEVELS.findIndex(l => l.key === k);
 function render(){
   const view = location.hash;
   $('#board').classList.toggle('hidden', view === '#staff');
-  $('#staff').classList.toggle('hidden', view === '#board');
+  $('#staff').classList.toggle('hidden', view !== '#staff');
 
   const nc = $('#nowCalling');
   const lp = S.last && S.patients.find(p => p.id === S.last.id);
@@ -315,8 +304,19 @@ function updatePreview(){
   $('#preview').textContent = (f && l) ? `จอจะแสดง: ${qText} [${lv.name}]  ${f} ${maskSurname(l)}` : `เลขคิว: ${qText} [${lv.name}]`;
 }
 
-$('#fLevel').innerHTML = LEVELS.map(l => `<option value="${l.key}">${l.name} – ${l.label}</option>`).join('');
-$('#roomSel').innerHTML = ROOMS.map(r => `<option>${esc(r)}</option>`).join('');
+socket.on('init-state', (st) => {
+  S = st;
+  lastTs = S.last ? S.last.ts : null;
+  $('#fLevel').innerHTML = LEVELS.map(l => `<option value="${l.key}">${l.name} – ${l.label}</option>`).join('');
+  $('#roomSel').innerHTML = ROOMS.map(r => `<option>${esc(r)}</option>`).join('');
+  render();
+  updatePreview();
+});
+
+socket.on('sync-state', (st) => {
+  S = st;
+  render();
+});
 
 $('#regForm').addEventListener('submit', e => {
   e.preventDefault();
@@ -334,7 +334,6 @@ document.addEventListener('click', () => { $('#soundHint').classList.add('hidden
 const tick = () => $('#clock').textContent = new Date().toLocaleTimeString('th-TH');
 tick(); setInterval(tick, 1000);
 setInterval(() => { if (rollDay()) save(); else render(); updatePreview(); }, 30000);
-$('#fFirst').focus();
 </script>
 </body>
 </html>
