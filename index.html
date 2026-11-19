@@ -96,6 +96,7 @@ td small{color:#64748b}
   <div class="card row">
     <label>ห้องตรวจ: <select id="roomSel"></select></label>
     <button onclick="callNext(getRoom())">📢 เรียกคิวถัดไป (ตามความเร่งด่วน)</button>
+    <button onclick="testSound()" style="background:#d97706">🔊 ทดสอบเสียง</button>
     <a href="#board" target="_blank">เปิดจอแสดงผลในแท็บใหม่ ↗</a>
     <span style="flex:1"></span>
     <button class="danger" onclick="resetAll()">ล้างข้อมูลทั้งหมด</button>
@@ -257,6 +258,18 @@ function announce(p){
     u.lang = 'th-TH'; u.rate = 0.9;
     speechSynthesis.speak(u);
   }
+}
+
+function testSound(){
+  if (!('speechSynthesis' in window)){
+    alert('เบราว์เซอร์นี้ไม่รองรับระบบเสียงพูด');
+    return;
+  }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance('ทดสอบระบบเสียงประกาศ ห้องฉุกเฉิน');
+  u.lang = 'th-TH';
+  u.rate = 0.9;
+  speechSynthesis.speak(u);
 }
 
 const tag = l => `<span class="tag" style="background:${l.color};color:${l.text}">${l.name}</span>`;
