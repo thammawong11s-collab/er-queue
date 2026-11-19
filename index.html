@@ -215,6 +215,13 @@ function esc(s) {
   });
 }
 
+function buildStatusOptions(currentStatus) {
+  return SERVICE_STATUSES.map(st => {
+    const selected = (currentStatus === st) ? 'selected' : '';
+    return `<option ${selected}>${st}</option>`;
+  }).join('');
+}
+
 const isToday = p => new Date(p.regAt).toLocaleDateString('sv') === today();
 const qNum    = q => parseInt(String(q).replace(/\D/g, ''), 10);
 const usedBy  = n => S.patients.find(p => isToday(p) && qNum(p.q) === n);
@@ -365,8 +372,7 @@ function render(){
       const q = esc(p.q);
       const name = esc(publicName(p));
       const status = esc(p.serviceStatus);
-      const room = esc(p.room);
-      const wait = p.status === 'called' ? '➜ ' + room : waitMin(p) + ' นาที';
+      const wait = p.status === 'called' ? '➜ ' + esc(p.room) : waitMin(p) + ' นาที';
       return `<li class="${p.status === 'called' ? 'called' : ''} ${isOver(p) ? 'overdue' : ''}">
         <b class="qb" style="background:${l.color};color:${l.text}">${q}</b>
         <div>
@@ -393,7 +399,7 @@ function render(){
     const pubName = esc(publicName(p));
     const wait = waitMin(p);
     const room = esc(p.room);
-    const options = SERVICE_STATUSES.map(st => `<option ${p.serviceStatus === st ? 'selected' : ''}>${st}</option>`).join('');
+    const optionsHtml = buildStatusOptions(p.serviceStatus);
     
     return `<tr>
       <td><b>${q}</b>${p.manual ? ' <small class="manual">(ลงเอง)</small>' : ''}</td>
@@ -401,7 +407,7 @@ function render(){
       <td>${tag(L[p.level])}</td>
       <td>
         <select onchange="updateServiceStatus(${p.id}, this.value)">
-          ${options}
+          ${optionsHtml}
         </select>
       </td>
       <td class="${isOver(p) ? 'over' : ''}">${wait}</td>
