@@ -25,60 +25,117 @@
     #nowCalling .room{font-size:42px;font-weight:800;margin-left:auto}
     #nowCalling .q{font-size:64px;font-weight:800;padding:2px 22px;border-radius:12px;border:1px solid #0003}
     .lanes{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;flex:1}
-    .lane{background:#1e293b;border-radius:8px;padding:8px 10px;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:18px}
-    .lane li{font-size:22px}
+    .lane{background:#1e293b;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+    .lane h2{padding:8px;font-size:20px;text-align:center;border-radius:6px;color:#000}
+    .lane ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+    .lane li{background:#0f172a;padding:8px 10px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;font-size:18px}
     .lane li.called{outline:2px solid #facc15}
     .lane li.overdue .wait{color:#f87171;font-weight:800;animation:blink 1s infinite}
     @keyframes blink{50%{opacity:.3}}
-    .qb{padding:1px 8px;border-radius:6px;border:1px solid #0003}
-    .wait{font-size:14px;color:#94a3b8;text-align:right}
+    .qb{padding:2px 8px;border-radius:6px;font-weight:700}
+    .wait{font-size:14px;color:#94a3b8}
     .status-badge{font-size:12px;padding:2px 6px;border-radius:4px;background:#334155;color:#f8fafc;margin-top:2px;display:inline-block}
     .more,.empty{font-size:14px;text-align:center;color:#64748b;padding:6px}
-    #soundHint{position:absolute;right:16px;bottom:16px;background:#facc15;color:#000;padding:8px 14px;cursor:pointer;z-index:10}
+    #soundHint{position:absolute;right:16px;bottom:16px;background:#facc15;color:#000;padding:8px 14px;cursor:pointer;z-index:10;border-radius:6px;font-weight:700}
     #staff{background:#f1f5f9;color:#0f172a;padding:16px;min-height:100vh}
     #staff h2{margin-bottom:12px}
     .card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0002}
     .card h3{margin-bottom:10px}
     .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    input,select,button{font-family:inherit;font-size:14px;padding:8px 12px;border:1px solid #cbd5e1}
+    input,select,button{font-family:inherit;font-size:14px;padding:8px 12px;border:1px solid #cbd5e1;border-radius:6px}
+    button{cursor:pointer}
     button.danger{background:#dc2626;color:#fff;border:none;font-weight:600}
-    button.ok{background:#16a34a}
+    button.ok{background:#16a34a;color:#fff;border:none;font-weight:600}
     table{width:100%;border-collapse:collapse}
     th,td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left}
     td small{color:#64748b}
-    .tag{padding:2px 10px;font-weight:700;font-size:14px;border:1px solid #0003;white-space:nowrap}
-    #preview{color:#64748b}
+    .tag{padding:2px 10px;font-weight:700;font-size:14px;border:1px solid #0003;white-space:nowrap;border-radius:4px}
+    #preview{color:#64748b;font-weight:600}
     .over{color:#dc2626;font-weight:800}
     .muted{color:#94a3b8}
-    .manual{d:d97706}
   </style>
 </head>
 <body>
   <div id="connectionStatus">กำลังเชื่อมต่อ...</div>
+  <div id="soundHint">🔊 คลิกเพื่อเปิดเสียง</div>
+
+  <!-- หน้าจอแสดงผล (Board) -->
   <div id="board">
     <div class="top">
       <div>
         <span class="hospital-title">โรงพยาบาลบางแพ</span>
         <h1>ห้องฉุกเฉิน — ลำดับการรับบริการ</h1>
       </div>
-      <div id="clock">--:--:--</div>
+      <div style="display:flex;gap:16px;align-items:center;">
+        <a href="#board" onclick="switchView('staff')" style="color:#38bdf8;font-size:14px;text-decoration:none;">[ ไปหน้าเจ้าหน้าที่ ]</a>
+        <div id="clock">--:--:--</div>
+      </div>
     </div>
     <div id="nowCalling">
-      <div>รอเรียกคิว...</div>
+      <div class="muted">รอเรียกคิว...</div>
     </div>
     <div class="lanes" id="lanesContainer"></div>
+  </div>
+
+  <!-- หน้าจอเจ้าหน้าที่ (Staff) -->
+  <div id="staff" class="hidden">
+    <div class="top" style="margin-bottom:16px;">
+      <h2>ระบบจัดการคิวห้องฉุกเฉิน (เจ้าหน้าที่)</h2>
+      <a href="#" onclick="switchView('board')" style="color:#0284c7;font-weight:600;">[ กลับหน้าจอแสดงผล ]</a>
+    </div>
+
+    <div class="card">
+      <h3>เพิ่มคิวใหม่</h3>
+      <div class="row">
+        <select id="inLevel">
+          <option value="red">แดง - วิกฤต</option>
+          <option value="pink">ชมพู - ฉุกเฉินเร่งด่วน</option>
+          <option value="yellow">เหลือง - เร่งด่วน</option>
+          <option value="green">เขียว - ไม่รุนแรง</option>
+          <option value="white">ขาว - ทั่วไป</option>
+        </select>
+        <input type="text" id="inHn" placeholder="HN (เช่น 12345)" style="width:130px;">
+        <input type="text" id="inName" placeholder="ชื่อ-สกุล" style="width:200px;">
+        <button class="ok" onclick="addQueue()">เพิ่มคิว</button>
+        <span id="preview"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>ผู้ป่วยในคิว</h3>
+      <table>
+        <thead>
+          <tr><th>คิว</th><th>HN / ชื่อ-สกุล</th><th>ระดับ</th><th>สถานะบริการ</th><th>รอ (นาที)</th><th>สถานะเรียก</th><th>จัดการ</th></tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    
+    <div class="card">
+      <button class="danger" onclick="resetAll()">ล้างข้อมูลทั้งหมด</button>
+    </div>
   </div>
 
   <script>
     const socket = io();
 
-    const levels = [
+    const LEVELS = [
       { key: 'red', name: 'แดง', label: 'วิกฤต', target: 0, color: '#dc2626', text: '#fff' },
       { key: 'pink', name: 'ชมพู', label: 'ฉุกเฉินเร่งด่วน', target: 10, color: '#ec4899', text: '#fff' },
       { key: 'yellow', name: 'เหลือง', label: 'เร่งด่วน', target: 30, color: '#facc15', text: '#000' },
       { key: 'green', name: 'เขียว', label: 'ไม่รุนแรง', target: 60, color: '#16a34a', text: '#fff' },
       { key: 'white', name: 'ขาว', label: 'ทั่วไป', target: 120, color: '#f8fafc', text: '#000' }
     ];
+    const ROOMS = ['ห้องฉุกเฉิน', 'ห้องฉีดยา-ทำแผล'];
+    const SERVICE_STATUSES = ['รอพบแพทย์', 'กำลังตรวจรักษา', 'รอผลเลือด / แล็บ', 'รอเอกซเรย์ (X-ray)', 'สังเกตอาการ', 'กำลังช่วยฟื้นคืนชีพ (CPR)', 'นอนพักค้าง / รอส่งต่อ'];
+
+    let state = { queues: [], calling: null };
+    let audioUnlocked = false;
+
+    document.getElementById('soundHint').addEventListener('click', () => {
+      audioUnlocked = true;
+      document.getElementById('soundHint').style.display = 'none';
+    });
 
     socket.on('connect', () => {
       document.getElementById('connectionStatus').innerText = 'เชื่อมต่อแล้ว';
@@ -90,16 +147,150 @@
       document.getElementById('connectionStatus').classList.remove('connected');
     });
 
-    socket.on('init-state', (data) => {
-      updateBoard(data);
+    socket.on('init-state', (serverState) => {
+      state = serverState;
+      render();
     });
 
-    socket.on('sync-state', (data) => {
-      updateBoard(data);
+    socket.on('sync-state', (serverState) => {
+      state = serverState;
+      render();
     });
 
-    function updateBoard(data) {
-      // ฟังก์ชันอัปเดตหน้าจอตามข้อมูลที่ได้รับจาก Server
+    socket.on('call-queue', (item) => {
+      state.calling = item;
+      render();
+      playAlertSound();
+    });
+
+    function switchView(view) {
+      if (view === 'staff') {
+        document.getElementById('board').classList.add('hidden');
+        document.getElementById('staff').classList.remove('hidden');
+      } else {
+        document.getElementById('staff').classList.add('hidden');
+        document.getElementById('board').classList.remove('hidden');
+      }
+    }
+
+    function addQueue() {
+      const level = document.getElementById('inLevel').value;
+      const hn = document.getElementById('inHn').value.trim();
+      const name = document.getElementById('inName').value.trim();
+      if (!name) return alert('กรุณากรอกชื่อ-สกุล');
+      
+      socket.emit('add-queue', { level, hn, name });
+      document.getElementById('inHn').value = '';
+      document.getElementById('inName').value = '';
+    }
+
+    function callQueue(id, room) {
+      socket.emit('call-queue', { id, room });
+    }
+
+    function updateStatus(id, serviceStatus) {
+      socket.emit('update-status', { id, serviceStatus });
+    }
+
+    function finishQueue(id) {
+      socket.emit('finish-queue', { id });
+    }
+
+    function removeQueue(id) {
+      if (confirm('ต้องการลบคิวนี้ใช่หรือไม่?')) {
+        socket.emit('remove-queue', { id });
+      }
+    }
+
+    function resetAll() {
+      if (confirm('คำเตือน: ข้อมูลคิวทั้งหมดจะถูกลบ!')) {
+        socket.emit('reset-all');
+      }
+    }
+
+    function playAlertSound() {
+      if (!audioUnlocked) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.4);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
+    function render() {
+      // Render Now Calling
+      const nc = document.getElementById('nowCalling');
+      if (state.calling) {
+        const c = state.calling;
+        const lvlObj = LEVELS.find(l => l.key === c.level) || {};
+        nc.className = 'flash';
+        nc.innerHTML = `
+          <div class="lvl" style="background:${lvlObj.color}; color:${lvlObj.text}">${lvlObj.name} - ${lvlObj.label}</div>
+          <div class="q">${c.code}</div>
+          <div class="info">${c.name} <small>(${c.hn || 'ไม่มี HN'})</small></div>
+          <div class="room">📍 ${c.room || 'ห้องฉุกเฉิน'}</div>
+        `;
+        setTimeout(() => nc.classList.remove('flash'), 4000);
+      } else {
+        nc.innerHTML = `<div class="muted">รอเรียกคิว...</div>`;
+      }
+
+      // Render Lanes
+      const container = document.getElementById('lanesContainer');
+      container.innerHTML = '';
+      LEVELS.forEach(lvl => {
+        const items = state.queues.filter(q => q.level === lvl.key && q.status === 'waiting');
+        const lane = document.createElement('div');
+        lane.className = 'lane';
+        lane.innerHTML = `
+          <h2 style="background:${lvl.color}; color:${lvl.text}">${lvl.name} (${items.length})</h2>
+          <ul>${items.slice(0, 6).map(q => `
+            <li>
+              <div>
+                <span class="qb" style="background:${lvl.color}; color:${lvl.text}">${q.code}</span>
+                <span>${q.name}</span>
+                <br><span class="status-badge">${q.serviceStatus || 'รอพบแพทย์'}</span>
+              </div>
+              <div class="wait">${Math.floor((Date.now() - q.time) / 60000)} นาที</div>
+            </li>`).join('')}
+          </ul>
+        `;
+        container.appendChild(lane);
+      });
+
+      // Render Staff Table
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = state.queues.map(q => {
+        const lvlObj = LEVELS.find(l => l.key === q.level) || {};
+        const waitMin = Math.floor((Date.now() - q.time) / 60000);
+        return `
+          <tr>
+            <td><span class="tag" style="background:${lvlObj.color}; color:${lvlObj.text}">${q.code}</span></td>
+            <td><b>${q.name}</b><br><small>HN: ${q.hn || '-'}</small></td>
+            <td>${lvlObj.name}</td>
+            <td>
+              <select onchange="updateStatus('${q.id}', this.value)">
+                ${SERVICE_STATUSES.map(s => `<option ${q.serviceStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </td>
+            <td>${waitMin} นาที</td>
+            <td>${q.calledCount ? `เรียกแล้ว (${q.calledCount})` : 'ยังไม่เรียก'}</td>
+            <td>
+              <button class="ok" onclick="callQueue('${q.id}', 'ห้องฉุกเฉิน')">เรียก</button>
+              <button onclick="finishQueue('${q.id}')" style="background:#0284c7;color:#fff;border:none;">เสร็จ</button>
+              <button class="danger" onclick="removeQueue('${q.id}')">ลบ</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     setInterval(() => {
