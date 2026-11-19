@@ -140,6 +140,7 @@ socket.on('sync-state', (serverState) => {
 
 const CONFIG = {
   MAX_PER_LANE: 8,
+  ANNOUNCE_TIMES: 1,
   MAX_Q_DIGITS: 3,
 };
 const LEVELS = [
@@ -246,43 +247,31 @@ function resetAll(){
 }
 const getRoom = () => $('#roomSel').value;
 
-// ระบบสร้างเสียงแจ้งเตือนดิจิทัล (Beep / Chime) ด้วย Web Audio API 100% ทำงานทุกเครื่อง
-function playBeepSound() {
-  try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
-
-    // เล่นเสียงติ๊ด 3 ครั้งต่อเนื่อง
-    [0, 0.15, 0.3].forEach((delay, index) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      
-      osc.type = 'sine';
-      // เสียงครั้งสุดท้ายสูงขึ้นนิดนึงเพื่อให้ฟังดูไพเราะ
-      osc.frequency.setValueAtTime(index === 2 ? 880 : 660, ctx.currentTime + delay);
-      
-      gain.gain.setValueAtTime(0.3, ctx.currentTime + delay);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.1);
-      
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      
-      osc.start(ctx.currentTime + delay);
-      osc.stop(ctx.currentTime + delay + 0.1);
-    });
-  } catch (e) {
-    console.log(e);
-  }
+// ระบบเล่นไฟล์เสียงตามชื่อจริงบน GitHub (.mp3.aac)
+function playAudioQueue(playlist) {
+  if (!playlist || playlist.length === 0) return;
+  const audio = new Audio(playlist.shift());
+  audio.onended = () => playAudioQueue(playlist);
+  audio.onerror = () => playAudioQueue(playlist);
+  audio.play().catch(() => {});
 }
 
 function announce(p){
   if (!p) return;
-  playBeepSound();
+  let playlist = ['audio/pleasesign.mp3.aac'];
+  const digits = [...String(p.q).replace(/\D/g, '')];
+  digits.forEach(d => playlist.push(`audio/${d}.mp3.aac`));
+  
+  if (p.room === 'ห้องฉุกเฉิน') {
+    playlist.push('audio/room.mp3.aac', 'audio/ห้องฉุกเฉิน.mp3.aac');
+  } else if (p.room === 'ห้องฉีดยา-ทำแผล') {
+    playlist.push('audio/room.mp3.aac', 'audio/ห้องฉีดยา-ทำแผล.mp3.aac');
+  }
+  playAudioQueue(playlist);
 }
 
 function testSound(){
-  playBeepSound();
+  playAudioQueue(['audio/pleasesign.mp3.aac']);
 }
 
 const tag = l => `<span class="tag" style="background:${l.color};color:${l.text}">${l.name}</span>`;
@@ -317,13 +306,13 @@ function render(){
   $('#lanes').innerHTML = LEVELS.map(l => {
     const list = S.patients.filter(p => p.level === l.key && p.status !== 'done')
                            .sort((a, b) => a.regAt - b.regAt);
-    const items = list.slice(0, 8).map(p => `
+    const items = list.slice(0, CONFIG.MAX_PER_LANE).map(p => `
       <li class="${p.status === 'called' ? 'called' : ''} ${isOver(p) ? 'overdue' : ''}">
         <b class="qb" style="background:${l.color};color:${l.text}">${esc(p.q)}</b>
         <span>${esc(publicName(p))}</span>
         <span class="wait">${p.status === 'called' ? '➜ ' + esc(p.room) : waitMin(p) + ' นาที'}</span>
       </li>`).join('');
-    const extra = list.length - 8;
+    const extra = list.length - CONFIG.MAX_PER_LANE;
     return `<div class="lane">
       <h2 style="background:${l.color};color:${l.text}">${l.name}<small>${l.label} · ${list.length} ราย</small></h2>
       <ul>${items || '<div class="empty">— ไม่มีคิว —</div>'}</ul>
@@ -369,7 +358,7 @@ $('#regForm').addEventListener('submit', e => {
     $('#fFirst').value.trim(), $('#fLast').value.trim(), $('#fLevel').value,
     $('#fQ').value
   );
-  if (!ok){ $('#fQ').select(); return; }
+  if (!ok){ $('#fQ'].select(); return; }
   e.target.reset(); updatePreview();
   $('#fFirst').focus();
 });
