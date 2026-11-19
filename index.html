@@ -8,7 +8,7 @@
 <script src="/socket.io/socket.io.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Sarabun',sans-serif;background:#0f172a;color:#e2e8f0}
+body{font-family:'Sarabun',sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
 .hidden{display:none!important}
 #connectionStatus{position:fixed;top:10px;right:10px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;z-index:999;background:#dc2626;color:#fff}
 #connectionStatus.connected{background:#16a34a}
@@ -16,9 +16,15 @@ body{font-family:'Sarabun',sans-serif;background:#0f172a;color:#e2e8f0}
 /* ===== จอแสดงผล (ทีวี) ===== */
 #board{padding:16px;min-height:100vh;display:flex;flex-direction:column;gap:14px;position:relative}
 .top{display:flex;justify-content:space-between;align-items:center}
-.top h1{font-size:30px}
+.top h1{font-size:30px;display:flex;align-items:center;gap:10px}
+
+/* คลื่นหัวใจแอนิเมชันมุมหัวข้อ */
+.ecg-header-icon{width:120px;height:35px;display:inline-block}
+.ecg-line{fill:none;stroke:#ef4444;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:300;stroke-dashoffset:300;animation:ecgAnim 2s linear infinite}
+@keyframes ecgAnim{to{stroke-dashoffset:0}}
+
 #clock{font-size:30px;font-weight:800}
-#nowCalling{border-radius:14px;padding:18px 24px;display:flex;align-items:center;gap:20px;background:#1e293b;border:3px solid #334155;min-height:110px;flex-wrap:wrap}
+#nowCalling{border-radius:14px;padding:18px 24px;display:flex;align-items:center;gap:20px;background:#1e293b;border:3px solid #334155;min-height:110px;flex-wrap:wrap;position:relative;overflow:hidden}
 #nowCalling.flash{animation:flash .8s 4}
 @keyframes flash{50%{background:#475569;border-color:#facc15}}
 #nowCalling .label{font-size:22px;color:#94a3b8}
@@ -26,6 +32,12 @@ body{font-family:'Sarabun',sans-serif;background:#0f172a;color:#e2e8f0}
 #nowCalling .lvl{font-size:26px;font-weight:700;padding:4px 14px;border-radius:999px;border:1px solid #0003}
 #nowCalling .info{font-size:36px;font-weight:600}
 #nowCalling .room{font-size:42px;font-weight:800;margin-left:auto;color:#facc15}
+
+/* แบ็คกราวด์คลื่นหัวใจจางๆ วิ่งด้านหลังกล่องกำลังเรียก */
+.ecg-bg{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0.15;pointer-events:none;overflow:hidden}
+.ecg-path{fill:none;stroke:#38bdf8;stroke-width:2;stroke-dasharray:1000;stroke-dashoffset:1000;animation:ecgBgAnim 4s linear infinite}
+@keyframes ecgBgAnim{to{stroke-dashoffset:0}}
+
 #lanes{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;flex:1}
 .lane{background:#1e293b;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
 .lane h2{padding:10px;font-size:22px;text-align:center}
@@ -38,8 +50,9 @@ body{font-family:'Sarabun',sans-serif;background:#0f172a;color:#e2e8f0}
 @keyframes blink{50%{opacity:.3}}
 .qb{padding:1px 8px;border-radius:6px;border:1px solid #0003}
 .wait{font-size:14px;color:#94a3b8;text-align:right}
+.status-badge{font-size:12px;padding:2px 6px;border-radius:4px;background:#334155;color:#f8fafc;margin-top:2px;display:inline-block}
 .more,.empty{font-size:14px;text-align:center;color:#64748b;padding:6px}
-#soundHint{position:absolute;right:16px;bottom:16px;background:#facc15;color:#000;padding:8px 14px;border-radius:999px;font-weight:700;cursor:pointer}
+#soundHint{position:absolute;right:16px;bottom:16px;background:#facc15;color:#000;padding:8px 14px;border-radius:999px;font-weight:700;cursor:pointer;z-index:10}
 
 /* ===== จอเจ้าหน้าที่ ===== */
 #staff{background:#f1f5f9;color:#0f172a;padding:16px;min-height:100vh}
@@ -68,7 +81,12 @@ td small{color:#64748b}
 <!-- ================= จอแสดงผล (ทีวี) ================= -->
 <section id="board">
   <div class="top">
-    <h1>🚑 ห้องฉุกเฉิน — ลำดับการรับบริการ</h1>
+    <h1>
+      🚑 ห้องฉุกเฉิน — ลำดับการรับบริการ
+      <svg class="ecg-header-icon" viewBox="0 0 150 40">
+        <path class="ecg-line" d="M0,20 L40,20 L50,5 L60,35 L70,10 L80,25 L90,20 L150,20" />
+      </svg>
+    </h1>
     <div id="clock"></div>
   </div>
   <div id="nowCalling"></div>
@@ -105,7 +123,7 @@ td small{color:#64748b}
   <div class="card">
     <h3>ผู้ป่วยในคิว</h3>
     <table>
-      <thead><tr><th>คิว</th><th>ชื่อ-สกุล (บนจอ)</th><th>ระดับ</th><th>รอ (นาที)</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+      <thead><tr><th>คิว</th><th>ชื่อ-สกุล (บนจอ)</th><th>ระดับ</th><th>สถานะบริการ</th><th>รอ (นาที)</th><th>สถานะเรียก</th><th>จัดการ</th></tr></thead>
       <tbody id="tbody"></tbody>
     </table>
   </div>
@@ -151,6 +169,16 @@ const LEVELS = [
   {key:'white',  name:'ขาว',   label:'ทั่วไป',          target:120, color:'#f8fafc', text:'#000'},
 ];
 const ROOMS = ['ห้องฉุกเฉิน', 'ห้องฉีดยา-ทำแผล'];
+const SERVICE_STATUSES = [
+  'รอพบแพทย์',
+  'กำลังตรวจรักษา',
+  'รอผลเลือด / แล็บ',
+  'รอเอกซเรย์ (X-ray)',
+  'สังเกตอาการ',
+  'กำลังช่วยฟื้นคืนชีพ (CPR)',
+  'นอนพักค้าง / รอส่งต่อ'
+];
+
 const L = Object.fromEntries(LEVELS.map(l => [l.key, l]));
 const $ = s => document.querySelector(s);
 
@@ -177,7 +205,7 @@ function maskSurname(last){
   return g.slice(0, g.length <= 2 ? 1 : 2).join('') + '***';
 }
 const publicName = p => `${p.first} ${maskSurname(p.last)}`;
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] || c));
 
 const isToday = p => new Date(p.regAt).toLocaleDateString('sv') === today();
 const qNum    = q => parseInt(String(q).replace(/\D/g, ''), 10);
@@ -208,7 +236,7 @@ function addPatient(first, last, level, manualQ = ''){
   if (r.error){ alert(r.error); return false; }
   S.seq = Math.max(S.seq || 0, r.n);
   S.patients.push({id: ++S.nid, q: r.q, level, first, last, manual,
-                   status: 'waiting', regAt: Date.now(), room: ''});
+                   status: 'waiting', serviceStatus: 'รอพบแพทย์', regAt: Date.now(), room: ''});
   save();
   return true;
 }
@@ -225,8 +253,15 @@ function callNext(room){
 function callPatient(id, room){
   const p = S.patients.find(x => x.id === id);
   if (!p) return;
-  p.status = 'called'; p.room = room; p.calledAt = Date.now();
+  p.status = 'called'; p.room = room; p.serviceStatus = 'กำลังตรวจรักษา'; p.calledAt = Date.now();
   S.last = {id, ts: Date.now()};
+  save();
+}
+
+function updateServiceStatus(id, newStatus){
+  const p = S.patients.find(x => x.id === id);
+  if (!p) return;
+  p.serviceStatus = newStatus;
   save();
 }
 
@@ -285,14 +320,23 @@ function render(){
 
   const nc = $('#nowCalling');
   const lp = S.last && S.patients.find(p => p.id === S.last.id);
+  
+  const ecgBgSvg = `<div class="ecg-bg">
+    <svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 1200 100">
+      <path class="ecg-path" d="M0,50 L200,50 L220,10 L240,90 L260,30 L280,70 L300,50 L1200,50" />
+    </svg>
+  </div>`;
+
   if (lp){
     const l = L[lp.level];
-    nc.innerHTML = `<span class="label">กำลังเรียก</span>
+    nc.innerHTML = ecgBgSvg + `<span class="label">กำลังเรียก</span>
       <span class="q" style="background:${l.color};color:${l.text}">${esc(lp.q)}</span>
       <span class="lvl" style="background:${l.color};color:${l.text}">${l.name}</span>
-      <span class="info">คุณ${esc(publicName(lp))}</span>
+      <span class="info">คุณ${esc(publicName(lp))} (${esc(lp.serviceStatus)})</span>
       <span class="room">➜ ${esc(lp.room)}</span>`;
-  } else nc.innerHTML = '<span class="info">รอเรียกคิว...</span>';
+  } else {
+    nc.innerHTML = ecgBgSvg + '<span class="info">รอเรียกคิว...</span>';
+  }
 
   if (S.last && S.last.ts !== lastTs){
     lastTs = S.last.ts;
@@ -308,7 +352,10 @@ function render(){
     const items = list.slice(0, CONFIG.MAX_PER_LANE).map(p => `
       <li class="${p.status === 'called' ? 'called' : ''} ${isOver(p) ? 'overdue' : ''}">
         <b class="qb" style="background:${l.color};color:${l.text}">${esc(p.q)}</b>
-        <span>${esc(publicName(p))}</span>
+        <div>
+          <div>${esc(publicName(p))}</div>
+          <span class="status-badge">${esc(p.serviceStatus)}</span>
+        </div>
         <span class="wait">${p.status === 'called' ? '➜ ' + esc(p.room) : waitMin(p) + ' นาที'}</span>
       </li>`).join('');
     const extra = list.length - CONFIG.MAX_PER_LANE;
@@ -321,18 +368,24 @@ function render(){
 
   const active = S.patients.filter(p => p.status !== 'done')
                   .sort((a, b) => levelOrder(a.level) - levelOrder(b.level) || a.regAt - b.regAt);
+  
   $('#tbody').innerHTML = active.map(p => `
     <tr>
       <td><b>${esc(p.q)}</b>${p.manual ? ' <small class="manual">(ลงเอง)</small>' : ''}</td>
       <td>${esc(p.first + ' ' + p.last)}<br><small>บนจอ: ${esc(publicName(p))}</small></td>
       <td>${tag(L[p.level])}</td>
+      <td>
+        <select onchange="updateServiceStatus(${p.id}, this.value)">
+          ${SERVICE_STATUSES.map(st => `<option ${p.serviceStatus === st ? 'selected' : ''}>${st}</option>`).join('')}
+        </select>
+      </td>
       <td class="${isOver(p) ? 'over' : ''}">${waitMin(p)}</td>
       <td>${p.status === 'waiting' ? 'รอเรียก' : 'เรียกแล้ว ➜ ' + esc(p.room)}</td>
       <td>
         <button onclick="callPatient(${p.id}, getRoom())">${p.status === 'waiting' ? 'เรียก' : 'เรียกซ้ำ'}</button>
         <button class="ok" onclick="done(${p.id})">เสร็จ</button>
       </td>
-    </tr>`).join('') || '<tr><td colspan="6" style="text-align:center" class="muted">ไม่มีผู้ป่วยในคิว</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center" class="muted">ไม่มีผู้ป่วยในคิว</td></tr>';
 }
 
 function updatePreview(){
@@ -357,9 +410,9 @@ $('#regForm').addEventListener('submit', e => {
   e.preventDefault();
   const ok = addPatient(
     $('#fFirst').value.trim(), $('#fLast').value.trim(), $('#fLevel').value,
-    $('#fQ').value
+    $('#fQ'].value
   );
-  if (!ok){ $('#fQ').select(); return; }
+  if (!ok){ $('#fQ'].select(); return; }
   e.target.reset(); updatePreview();
   $('#fFirst').focus();
 });
