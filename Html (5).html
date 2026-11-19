@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบเรียกคิวห้องฉุกเฉิน</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;background:#0f172a;color:#e2e8f0}
+.hidden{display:none!important}
+
+/* ===== จอแสดงผล (ทีวี) ===== */
+#board{padding:16px;min-height:100vh;display:flex;flex-direction:column;gap:14px;position:relative}
+.top{display:flex;justify-content:space-between;align-items:center}
+.top h1{font-size:30px}
+#clock{font-size:30px;font-weight:800}
+#nowCalling{border-radius:14px;padding:18px 24px;display:flex;align-items:center;gap:20px;background:#1e293b;border:3px solid #334155;min-height:110px;flex-wrap:wrap}
+#nowCalling.flash{animation:flash .8s 4}
+@keyframes flash{50%{background:#475569;border-color:#facc15}}
+#nowCalling .label{font-size:22px;color:#94a3b8}
+#nowCalling .q{font-size:64px;font-weight:800;padding:2px 22px;border-radius:12px;border:1px solid #0003}
+#nowCalling .lvl{font-size:26px;font-weight:700;padding:4px 14px;border-radius:999px;border:1px solid #0003}
+#nowCalling .info{font-size:36px;font-weight:600}
+#nowCalling .room{font-size:42px;font-weight:800;margin-left:auto;color:#facc15}
+#lanes{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;flex:1}
+.lane{background:#1e293b;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.lane h2{padding:10px;font-size:22px;text-align:center}
+.lane h2 small{display:block;font-size:13px;font-weight:400}
+.lane ul{list-style:none;padding:8px;display:flex;flex-direction:column;gap:6px}
+.lane li{background:#0f172a;border-radius:8px;padding:8px 10px;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:18px}
+.lane li b{font-size:22px}
+.lane li.called{outline:2px solid #facc15}
+.lane li.overdue .wait{color:#f87171;font-weight:800;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.3}}
+.qb{padding:1px 8px;border-radius:6px;border:1px solid #0003}
+.wait{font-size:14px;color:#94a3b8;text-align:right}
+.more,.empty{font-size:14px;text-align:center;color:#64748b;padding:6px}
+#soundHint{position:absolute;right:16px;bottom:16px;background:#facc15;color:#000;padding:8px 14px;border-radius:999px;font-weight:700;cursor:pointer}
+
+/* ===== จอเจ้าหน้าที่ ===== */
+#staff{background:#f1f5f9;color:#0f172a;padding:16px;min-height:100vh}
+#staff h2{margin-bottom:12px}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0002}
+.card h3{margin-bottom:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select,button{font-family:inherit;font-size:16px;padding:8px 12px;border-radius:8px;border:1px solid #cbd5e1}
+button{cursor:pointer;background:#2563eb;color:#fff;border:none;font-weight:600}
+button.ok{background:#16a34a}
+button.danger{background:#dc2626}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:middle}
+td small{color:#64748b}
+.tag{padding:2px 10px;border-radius:999px;font-weight:700;font-size:14px;border:1px solid #0003;white-space:nowrap}
+#preview{color:#64748b}
+.over{color:#dc2626;font-weight:800}
+.muted{color:#94a3b8}
+.manual{color:#d97706}
+</style>
+</head>
+<body>
+
+<!-- ================= จอแสดงผล (ทีวี) ================= -->
+<section id="board">
+  <div class="top">
+    <h1>🚑 ห้องฉุกเฉิน — ลำดับการรับบริการ</h1>
+    <div id="clock"></div>
+  </div>
+  <div id="nowCalling"></div>
+  <div id="lanes"></div>
+  <div class="more">ลำดับการเรียกพิจารณาตามความเร่งด่วนทางการแพทย์ ไม่ใช่ลำดับเลขคิวหรือลำดับการมาถึง</div>
+  <div id="soundHint">🔇 คลิกหน้าจอ 1 ครั้งเพื่อเปิดเสียงประกาศ</div>
+</section>
+
+<!-- ================= จอเจ้าหน้าที่ ================= -->
+<section id="staff">
+  <h2>🩺 แผงควบคุมเจ้าหน้าที่ (Triage)</h2>
+
+  <div class="card">
+    <h3>ลงทะเบียน / คัดกรอง</h3>
+    <form id="regForm" class="row">
+      <input id="fFirst" placeholder="ชื่อ" required>
+      <input id="fLast" placeholder="นามสกุล" required>
+      <select id="fLevel"></select>
+      <input id="fQ" placeholder="เลขคิว (ว่าง = อัตโนมัติ)" size="16" autocomplete="off" inputmode="numeric" pattern="\d*">
+      <button type="submit">+ ออกคิว</button>
+      <span id="preview"></span>
+    </form>
+  </div>
+
+  <div class="card row">
+    <label>ห้องตรวจ: <select id="roomSel"></select></label>
+    <button onclick="callNext(getRoom())">📢 เรียกคิวถัดไป (ตามความเร่งด่วน)</button>
+    <a href="#board" target="_blank">เปิดจอแสดงผลในแท็บใหม่ ↗</a>
+    <span style="flex:1"></span>
+    <button class="danger" onclick="resetAll()">ล้างข้อมูลทั้งหมด</button>
+  </div>
+
+  <div class="card">
+    <h3>ผู้ป่วยในคิว</h3>
+    <table>
+      <thead><tr><th>คิว</th><th>ชื่อ-สกุล (บนจอ)</th><th>ระดับ</th><th>รอ (นาที)</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+/* =====================================================
+   1. การตั้งค่า (ปรับแก้ได้ตามโรงพยาบาล)
+   ===================================================== */
+const CONFIG = {
+  MAX_PER_LANE: 8,         // จำนวนรายชื่อสูงสุดต่อคอลัมน์บนจอทีวี
+  ANNOUNCE_TIMES: 2,       // ประกาศเสียงซ้ำกี่รอบ
+  MAX_Q_DIGITS: 3,         // จำนวนหลักสูงสุดของเลขคิวที่ลงเอง
+};
+// target = เวลารอสูงสุด (นาที) — ปรับให้ตรงเกณฑ์คัดกรองของโรงพยาบาล
+const LEVELS = [
+  {key:'red',    name:'แดง',   label:'วิกฤต',           target:0,   color:'#dc2626', text:'#fff'},
+  {key:'pink',   name:'ชมพู',  label:'ฉุกเฉินเร่งด่วน', target:10,  color:'#ec4899', text:'#fff'},
+  {key:'yellow', name:'เหลือง', label:'เร่งด่วน',        target:30,  color:'#facc15', text:'#000'},
+  {key:'green',  name:'เขียว', label:'ไม่รุนแรง',       target:60,  color:'#16a34a', text:'#fff'},
+  {key:'white',  name:'ขาว',   label:'ทั่วไป',          target:120, color:'#f8fafc', text:'#000'},
+];
+const ROOMS = ['ห้องฉุกเฉิน', 'ห้องฉีดยา-ทำแผล'];
+
+const L = Object.fromEntries(LEVELS.map(l => [l.key, l]));
+const STORE = 'er-queue-v3';
+const $ = s => document.querySelector(s);
+
+/* =====================================================
+   2. จัดการข้อมูล
+   ===================================================== */
+const today = () => new Date().toLocaleDateString('sv');   // YYYY-MM-DD
+const fresh = () => ({date: today(), seq: 0, nid: 0, patients: [], last: null});
+function load(){ try { return JSON.parse(localStorage.getItem(STORE)) || fresh(); } catch { return fresh(); } }
+let S = load();
+let lastTs = S.last ? S.last.ts : null;   // กันประกาศซ้ำตอนรีเฟรชหน้า
+
+// ขึ้นวันใหม่: รีเซ็ตเลขคิว ลบเคสที่เสร็จแล้ว (ผู้ป่วยที่ค้างอยู่ยังอยู่ต่อ)
+function rollDay(){
+  if (S.date === today()) return false;
+  S.date = today(); S.seq = 0;
+  S.patients = S.patients.filter(p => p.status !== 'done');
+  return true;
+}
+function save(){ localStorage.setItem(STORE, JSON.stringify(S)); render(); }
+
+/* =====================================================
+   3. ปกปิดนามสกุล (รองรับสระ/วรรณยุกต์ไทย)
+   ===================================================== */
+const seg = (window.Intl && Intl.Segmenter) ? new Intl.Segmenter('th', {granularity:'grapheme'}) : null;
+const graphemes = s => seg ? [...seg.segment(s)].map(x => x.segment) : Array.from(s);
+function maskSurname(last){
+  const g = graphemes(String(last).trim());
+  if (!g.length) return '***';
+  return g.slice(0, g.length <= 2 ? 1 : 2).join('') + '***';
+}
+const publicName = p => `${p.first} ${maskSurname(p.last)}`;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* =====================================================
+   4. เลขคิว (ชุดเดียวทุกสี: 001, 002, 003 ...)
+   ===================================================== */
+const isToday = p => new Date(p.regAt).toLocaleDateString('sv') === today();
+const qNum    = q => parseInt(String(q).replace(/\D/g, ''), 10);
+const usedBy  = n => S.patients.find(p => isToday(p) && qNum(p.q) === n);
+const fmtQ    = n => String(n).padStart(3, '0');
+
+function nextAutoQ(){
+  let n = S.seq || 0;
+  do { n++; } while (usedBy(n));      // ข้ามเลขที่ถูกใช้แล้ว
+  return {q: fmtQ(n), n};
+}
+
+function normalizeQ(input){
+  const s = String(input).trim().replace(/[\s-]/g, '');
+  const re = new RegExp(`^\\d{1,${CONFIG.MAX_Q_DIGITS}}$`);
+  if (!re.test(s)) return {error: `พิมพ์เฉพาะตัวเลข 1–${CONFIG.MAX_Q_DIGITS} หลัก เช่น 15`};
+  const n = +s;
+  if (n < 1) return {error: 'เลขคิวต้องมากกว่า 0'};
+  const dup = usedBy(n);
+  if (dup) return {error: `เลขคิว ${fmtQ(n)} ถูกใช้แล้ววันนี้ (สี${L[dup.level].name})`};
+  return {q: fmtQ(n), n};
+}
+
+/* =====================================================
+   5. การทำงานหลัก
+   ===================================================== */
+function addPatient(first, last, level, manualQ = ''){
+  rollDay();
+  const manual = String(manualQ).trim() !== '';
+  const r = manual ? normalizeQ(manualQ) : nextAutoQ();
+  if (r.error){ alert(r.error); return false; }
+  S.seq = Math.max(S.seq || 0, r.n);   // เลขอัตโนมัติจะต่อจากเลขนี้
+  S.patients.push({id: ++S.nid, q: r.q, level, first, last, manual,
+                   status: 'waiting', regAt: Date.now(), room: ''});
+  save();
+  return true;
+}
+
+function callNext(room){
+  for (const l of LEVELS){
+    const p = S.patients.filter(x => x.level === l.key && x.status === 'waiting')
+                        .sort((a, b) => a.regAt - b.regAt)[0];
+    if (p) return callPatient(p.id, room);
+  }
+  alert('ไม่มีผู้ป่วยรอเรียก');
+}
+
+function callPatient(id, room){
+  const p = S.patients.find(x => x.id === id);
+  if (!p) return;
+  p.status = 'called'; p.room = room; p.calledAt = Date.now();
+  S.last = {id, ts: Date.now()};
+  save();
+}
+
+function done(id){
+  const p = S.patients.find(x => x.id === id);
+  if (!p) return;
+  p.status = 'done'; p.doneAt = Date.now();
+  save();
+}
+
+function resetAll(){
+  if (confirm('ล้างข้อมูลคิวทั้งหมด?')){ S = fresh(); lastTs = null; save(); updatePreview(); }
+}
+const getRoom = () => $('#roomSel').value;
+
+/* =====================================================
+   6. เสียงประกาศ (อ่านเลขคิว + ชื่อจริง ไม่อ่านนามสกุล)
+   ===================================================== */
+const DIGIT = ['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+function announce(p){
+  if (!p || !('speechSynthesis' in window)) return;
+  const qText = [...String(p.q).replace(/\D/g, '')].map(d => DIGIT[d]).join(' ');
+  const msg = `ขอเชิญหมายเลข ${qText} คุณ${p.first} ที่ ${p.room} ค่ะ`;
+  speechSynthesis.cancel();
+  for (let i = 0; i < CONFIG.ANNOUNCE_TIMES; i++){
+    const u = new SpeechSynthesisUtterance(msg);
+    u.lang = 'th-TH'; u.rate = 0.9;
+    speechSynthesis.speak(u);
+  }
+}
+
+/* =====================================================
+   7. การแสดงผล
+   ===================================================== */
+const tag = l => `<span class="tag" style="background:${l.color};color:${l.text}">${l.name}</span>`;
+const waitMin = p => Math.floor((Date.now() - p.regAt) / 60000);
+const isOver = p => p.status === 'waiting' && (L[p.level].target === 0 || waitMin(p) > L[p.level].target);
+const levelOrder = k => LEVELS.findIndex(l => l.key === k);
+
+function render(){
+  const view = location.hash;
+  $('#board').classList.toggle('hidden', view === '#staff');
+  $('#staff').classList.toggle('hidden', view === '#board');
+
+  // --- แถบ "กำลังเรียก" ---
+  const nc = $('#nowCalling');
+  const lp = S.last && S.patients.find(p => p.id === S.last.id);
+  if (lp){
+    const l = L[lp.level];
+    nc.innerHTML = `<span class="label">กำลังเรียก</span>
+      <span class="q" style="background:${l.color};color:${l.text}">${esc(lp.q)}</span>
+      <span class="lvl" style="background:${l.color};color:${l.text}">${l.name}</span>
+      <span class="info">คุณ${esc(publicName(lp))}</span>
+      <span class="room">➜ ${esc(lp.room)}</span>`;
+  } else nc.innerHTML = '<span class="info">รอเรียกคิว...</span>';
+
+  if (S.last && S.last.ts !== lastTs){
+    lastTs = S.last.ts;
+    if (view !== '#staff'){
+      nc.classList.remove('flash'); void nc.offsetWidth; nc.classList.add('flash');
+      announce(lp);
+    }
+  }
+
+  // --- คอลัมน์ตามสี ---
+  $('#lanes').innerHTML = LEVELS.map(l => {
+    const list = S.patients.filter(p => p.level === l.key && p.status !== 'done')
+                           .sort((a, b) => a.regAt - b.regAt);
+    const items = list.slice(0, CONFIG.MAX_PER_LANE).map(p => `
+      <li class="${p.status === 'called' ? 'called' : ''} ${isOver(p) ? 'overdue' : ''}">
+        <b class="qb" style="background:${l.color};color:${l.text}">${esc(p.q)}</b>
+        <span>${esc(publicName(p))}</span>
+        <span class="wait">${p.status === 'called' ? '➜ ' + esc(p.room) : waitMin(p) + ' นาที'}</span>
+      </li>`).join('');
+    const extra = list.length - CONFIG.MAX_PER_LANE;
+    return `<div class="lane">
+      <h2 style="background:${l.color};color:${l.text}">${l.name}<small>${l.label} · ${list.length} ราย</small></h2>
+      <ul>${items || '<div class="empty">— ไม่มีคิว —</div>'}</ul>
+      ${extra > 0 ? `<div class="more">และอีก ${extra} ราย</div>` : ''}
+    </div>`;
+  }).join('');
+
+  // --- ตารางเจ้าหน้าที่ ---
+  const active = S.patients.filter(p => p.status !== 'done')
+                  .sort((a, b) => levelOrder(a.level) - levelOrder(b.level) || a.regAt - b.regAt);
+  $('#tbody').innerHTML = active.map(p => `
+    <tr>
+      <td><b>${esc(p.q)}</b>${p.manual ? ' <small class="manual">(ลงเอง)</small>' : ''}</td>
+      <td>${esc(p.first + ' ' + p.last)}<br><small>บนจอ: ${esc(publicName(p))}</small></td>
+      <td>${tag(L[p.level])}</td>
+      <td class="${isOver(p) ? 'over' : ''}">${waitMin(p)}</td>
+      <td>${p.status === 'waiting' ? 'รอเรียก' : 'เรียกแล้ว ➜ ' + esc(p.room)}</td>
+      <td>
+        <button onclick="callPatient(${p.id}, getRoom())">${p.status === 'waiting' ? 'เรียก' : 'เรียกซ้ำ'}</button>
+        <button class="ok" onclick="done(${p.id})">เสร็จ</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="6" style="text-align:center" class="muted">ไม่มีผู้ป่วยในคิว</td></tr>';
+}
+
+function updatePreview(){
+  const f = $('#fFirst').value.trim(), l = $('#fLast').value.trim();
+  const lv = L[$('#fLevel').value], mq = $('#fQ').value;
+  let qText;
+  if (mq.trim()){
+    const r = normalizeQ(mq);
+    qText = r.error ? '⚠️ ' + r.error : r.q;
+  } else qText = nextAutoQ().q + ' (อัตโนมัติ)';
+  $('#preview').textContent = (f && l)
+    ? `จอจะแสดง: ${qText} [${lv.name}]  ${f} ${maskSurname(l)}`
+    : `เลขคิว: ${qText} [${lv.name}]`;
+}
+
+/* =====================================================
+   8. เริ่มต้นระบบ
+   ===================================================== */
+$('#fLevel').innerHTML = LEVELS.map(l => `<option value="${l.key}">${l.name} – ${l.label}</option>`).join('');
+$('#roomSel').innerHTML = ROOMS.map(r => `<option>${esc(r)}</option>`).join('');
+
+$('#regForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const ok = addPatient(
+    $('#fFirst').value.trim(), $('#fLast').value.trim(), $('#fLevel').value,
+    $('#fQ').value
+  );
+  if (!ok){ $('#fQ').select(); return; }   // เลขผิดหรือซ้ำ ให้แก้ไขได้ทันที
+  e.target.reset(); updatePreview();
+  $('#fFirst').focus();
+});
+
+['#fFirst', '#fLast', '#fQ'].forEach(s => $(s).addEventListener('input', updatePreview));
+$('#fLevel').addEventListener('change', updatePreview);
+
+// ซิงก์ข้อมูลอัตโนมัติเมื่อเปิดหลายแท็บในเครื่องเดียวกัน
+window.addEventListener('storage', e => {
+  if (e.key === STORE){ S = load(); render(); updatePreview(); }
+});
+window.addEventListener('hashchange', render);
+
+// ปลดล็อกเสียงบนจอทีวีเมื่อมีการคลิกครั้งแรก
+document.addEventListener('click', () => {
+  $('#soundHint').classList.add('hidden');
+  if ('speechSynthesis' in window) speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+}, {once: true});
+
+const tick = () => $('#clock').textContent = new Date().toLocaleTimeString('th-TH');
+tick(); setInterval(tick, 1000);
+setInterval(() => { if (rollDay()) save(); else render(); updatePreview(); }, 30000); // อัปเดตเวลารอ + ตรวจวันใหม่
+
+rollDay();
+save();
+updatePreview();
+$('#fFirst').focus();
+</script>
+</body>
+</html>
