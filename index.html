@@ -209,7 +209,7 @@ function maskSurname(last){
   return g.slice(0, g.length <= 2 ? 1 : 2).join('') + '***';
 }
 const publicName = p => `${p.first} ${maskSurname(p.last)}`;
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] || c));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 const isToday = p => new Date(p.regAt).toLocaleDateString('sv') === today();
 const qNum    = q => parseInt(String(q).replace(/\D/g, ''), 10);
