@@ -357,15 +357,16 @@ function render(){
   $('#lanes').innerHTML = LEVELS.map(l => {
     const list = S.patients.filter(p => p.level === l.key && p.status !== 'done')
                            .sort((a, b) => a.regAt - b.regAt);
-    const items = list.slice(0, CONFIG.MAX_PER_LANE).map(p => `
-      <li class="${p.status === 'called' ? 'called' : ''} ${isOver(p) ? 'overdue' : ''}">
+    const items = list.slice(0, CONFIG.MAX_PER_LANE).map(p => {
+      return `<li class="${p.status === 'called' ? 'called' : ''} ${isOver(p) ? 'overdue' : ''}">
         <b class="qb" style="background:${l.color};color:${l.text}">${esc(p.q)}</b>
         <div>
           <div>${esc(publicName(p))}</div>
           <span class="status-badge">${esc(p.serviceStatus)}</span>
         </div>
         <span class="wait">${p.status === 'called' ? '➜ ' + esc(p.room) : waitMin(p) + ' นาที'}</span>
-      </li>`).join('');
+      </li>`;
+    }).join('');
     const extra = list.length - CONFIG.MAX_PER_LANE;
     return `<div class="lane">
       <h2 style="background:${l.color};color:${l.text}">${l.name}<small>${l.label} · ${list.length} ราย</small></h2>
