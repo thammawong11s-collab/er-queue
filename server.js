@@ -1,15 +1,16 @@
 const express = require('express');
-const { WebSocketServer } = require('ws');
 const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server });
+const io = new Server(server);
 
-// ให้บริการไฟล์ HTML และ Static ต่างๆ ในโฟลเดอร์เดียวกัน
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, '.')));
 
-let currentData = {
+// เก็บสถานะคิวล่าสุดไว้บนเซิร์ฟเวอร์เพื่อให้ทุกเครื่องซิงก์กัน
+let queueState = {
   date: new Date().toLocaleDateString('sv'),
   seq: 0,
   nid: 0,
@@ -17,30 +18,19 @@ let currentData = {
   last: null
 };
 
-wss.on('connection', (ws) => {
-  // ส่งข้อมูลปัจจุบันให้เครื่องที่เพิ่งเชื่อมต่อเข้ามาทันที
-  ws.send(JSON.stringify({ type: 'INIT', data: currentData }));
+io.on('connection', (socket) => {
+  // ส่งข้อมูลปัจจุบันให้เครื่องที่เพิ่งเชื่อมต่อเข้ามา
+  socket.emit('init-state', queueState);
 
-  ws.on('message', (message) => {
-    try {
-      const msg = JSON.parse(message);
-      if (msg.type === 'UPDATE') {
-        currentData = msg.data;
-        // Broadcast (กระจายข้อมูลใหม่ไปยังทุกเครื่องที่เปิดอยู่ทันที)
-        wss.clients.forEach((client) => {
-          if (client.readyState === client.OPEN) {
-            client.send(JSON.stringify({ type: 'SYNC', data: currentData }));
-          }
-        });
-      }
-    } catch (e) {
-      console.error('Invalid message', e);
-    }
+  // เมื่อมีการเปลี่ยนแปลงข้อมูลคิว (เพิ่ม, เรียกคิว, เสร็จสิ้น)
+  socket.on('update-queue', (newState) => {
+    queueState = newState;
+    // ส่งข้อมูลใหม่ให้ทุกหน้าจอที่เปิดอยู่ทันที
+    io.emit('sync-state', queueState);
   });
 });
 
-const PORT = 3000;
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 ระบบคิวพร้อมใช้งานที่: http://localhost:${PORT}`);
-  console.log(`📺 เปิดจอทีวีผ่านไอพีวงแลน เช่น: http://<IP-เครื่องนี้>:3000/#board`);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
