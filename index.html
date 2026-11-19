@@ -247,13 +247,19 @@ function resetAll(){
 }
 const getRoom = () => $('#roomSel').value;
 
-// ระบบเล่นไฟล์เสียงตามชื่อจริงบน GitHub (.mp3.aac)
+// ระบบเล่นไฟล์เสียง .mp3.aac จากโฟลเดอร์ audio โดยตรง
 function playAudioQueue(playlist) {
   if (!playlist || playlist.length === 0) return;
   const audio = new Audio(playlist.shift());
   audio.onended = () => playAudioQueue(playlist);
-  audio.onerror = () => playAudioQueue(playlist);
-  audio.play().catch(() => {});
+  audio.onerror = (e) => {
+    console.error("Audio error:", e);
+    playAudioQueue(playlist);
+  };
+  audio.play().catch(err => {
+    console.log("Play blocked or failed:", err);
+    playAudioQueue(playlist);
+  });
 }
 
 function announce(p){
@@ -338,7 +344,7 @@ function render(){
 
 function updatePreview(){
   const f = $('#fFirst').value.trim(), l = $('#fLast').value.trim();
-  const lv = L[$('#fLevel').value], mq = $('#fQ').value;
+  const lv = L[$('#fLevel].value], mq = $('#fQ').value;
   let qText;
   if (mq.trim()){
     const r = normalizeQ(mq);
