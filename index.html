@@ -247,7 +247,7 @@ function resetAll(){
 }
 const getRoom = () => $('#roomSel').value;
 
-// ระบบเล่นไฟล์เสียง .aac แบบต่อคิวลำดับ
+// ระบบเล่นไฟล์เสียง .aac ตามชื่อไฟล์จริงในเครื่อง
 function playAudioQueue(playlist) {
   if (!playlist || playlist.length === 0) return;
   const audio = new Audio(playlist.shift());
@@ -258,20 +258,20 @@ function playAudioQueue(playlist) {
 
 function announce(p){
   if (!p) return;
-  let playlist = ['audio/pleasesign.mp3.aac'];
+  let playlist = ['audio/pleasesign.aac'];
   const digits = [...String(p.q).replace(/\D/g, '')];
-  digits.forEach(d => playlist.push(`audio/${d}.mp3.aac`));
+  digits.forEach(d => playlist.push(`audio/${d}.aac`));
   
   if (p.room === 'ห้องฉุกเฉิน') {
-    playlist.push('audio/room.mp3.aac', 'audio/ห้องฉุกเฉิน.mp3.aac');
+    playlist.push('audio/room.aac', 'audio/ห้องฉุกเฉิน.aac');
   } else if (p.room === 'ห้องฉีดยา-ทำแผล') {
-    playlist.push('audio/room.mp3.aac', 'audio/ห้องฉีดยา-ทำแผล.mp3.aac');
+    playlist.push('audio/room.aac', 'audio/ห้องฉีดยา-ทำแผล.aac');
   }
   playAudioQueue(playlist);
 }
 
 function testSound(){
-  playAudioQueue(['audio/pleasesign.mp3.aac']);
+  playAudioQueue(['audio/pleasesign.aac']);
 }
 
 const tag = l => `<span class="tag" style="background:${l.color};color:${l.text}">${l.name}</span>`;
@@ -338,7 +338,7 @@ function render(){
 
 function updatePreview(){
   const f = $('#fFirst').value.trim(), l = $('#fLast').value.trim();
-  const lv = L[$('#fLevel->value') || $('#fLevel').value], mq = $('#fQ').value;
+  const lv = L[$('#fLevel').value], mq = $('#fQ').value;
   let qText;
   if (mq.trim()){
     const r = normalizeQ(mq);
