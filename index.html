@@ -89,11 +89,11 @@
           <option value="green">เขียว - ไม่รุนแรง</option>
           <option value="white">ขาว - ทั่วไป</option>
         </select>
-        <input type="text" id="inHn" placeholder="HN (เช่น 12345)" style="width:120px;">
-        <input type="text" id="inName" placeholder="ชื่อ-สกุล" style="width:180px;">
+        <input type="text" id="inCode" placeholder="เลขคิว (เช่น Y01)" style="width:110px;">
+        <input type="text" id="inHn" placeholder="HN (เช่น 12345)" style="width:110px;">
+        <input type="text" id="inName" placeholder="ชื่อ-สกุล" style="width:170px;">
         
-        <!-- ช่องเลือกหรือพิมพ์สถานะการรับบริการเอง -->
-        <input type="text" id="inServiceStatus" list="statusList" placeholder="สถานะการรับบริการ (เลือกหรือพิมพ์เอง)" style="width:230px;" value="รอพบแพทย์">
+        <input type="text" id="inServiceStatus" list="statusList" placeholder="สถานะการรับบริการ" style="width:200px;" value="รอพบแพทย์">
         <datalist id="statusList">
           <option value="รอพบแพทย์">
           <option value="กำลังตรวจรักษา">
@@ -181,13 +181,16 @@
 
     function addQueue() {
       const level = document.getElementById('inLevel').value;
+      const code = document.getElementById('inCode').value.trim();
       const hn = document.getElementById('inHn').value.trim();
       const name = document.getElementById('inName').value.trim();
       const serviceStatus = document.getElementById('inServiceStatus').value.trim() || 'รอพบแพทย์';
       
+      if (!code) return alert('กรุณากรอกเลขคิว (เช่น Y01)');
       if (!name) return alert('กรุณากรอกชื่อ-สกุล');
       
-      socket.emit('add-queue', { level, hn, name, serviceStatus });
+      socket.emit('add-queue', { level, code, hn, name, serviceStatus });
+      document.getElementById('inCode').value = '';
       document.getElementById('inHn').value = '';
       document.getElementById('inName').value = '';
       document.getElementById('inServiceStatus').value = 'รอพบแพทย์';
