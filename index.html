@@ -30,12 +30,9 @@
     .lane ul{list-style:none;display:flex;flex-direction:column;gap:6px}
     .lane li{background:#0f172a;padding:8px 10px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;font-size:18px}
     .lane li.called{outline:2px solid #facc15}
-    .lane li.overdue .wait{color:#f87171;font-weight:800;animation:blink 1s infinite}
-    @keyframes blink{50%{opacity:.3}}
     .qb{padding:2px 8px;border-radius:6px;font-weight:700}
     .wait{font-size:14px;color:#94a3b8}
     .status-badge{font-size:12px;padding:2px 6px;border-radius:4px;background:#334155;color:#f8fafc;margin-top:2px;display:inline-block}
-    .more,.empty{font-size:14px;text-align:center;color:#64748b;padding:6px}
     #soundHint{position:absolute;right:16px;bottom:16px;background:#facc15;color:#000;padding:8px 14px;cursor:pointer;z-index:10;border-radius:6px;font-weight:700}
     #staff{background:#f1f5f9;color:#0f172a;padding:16px;min-height:100vh}
     #staff h2{margin-bottom:12px}
@@ -50,8 +47,6 @@
     th,td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left}
     td small{color:#64748b}
     .tag{padding:2px 10px;font-weight:700;font-size:14px;border:1px solid #0003;white-space:nowrap;border-radius:4px}
-    #preview{color:#64748b;font-weight:600}
-    .over{color:#dc2626;font-weight:800}
     .muted{color:#94a3b8}
   </style>
 </head>
@@ -94,10 +89,22 @@
           <option value="green">เขียว - ไม่รุนแรง</option>
           <option value="white">ขาว - ทั่วไป</option>
         </select>
-        <input type="text" id="inHn" placeholder="HN (เช่น 12345)" style="width:130px;">
-        <input type="text" id="inName" placeholder="ชื่อ-สกุล" style="width:200px;">
+        <input type="text" id="inHn" placeholder="HN (เช่น 12345)" style="width:120px;">
+        <input type="text" id="inName" placeholder="ชื่อ-สกุล" style="width:180px;">
+        
+        <!-- ช่องเลือกหรือพิมพ์สถานะการรับบริการเอง -->
+        <input type="text" id="inServiceStatus" list="statusList" placeholder="สถานะการรับบริการ (เลือกหรือพิมพ์เอง)" style="width:230px;" value="รอพบแพทย์">
+        <datalist id="statusList">
+          <option value="รอพบแพทย์">
+          <option value="กำลังตรวจรักษา">
+          <option value="รอผลเลือด / แล็บ">
+          <option value="รอเอกซเรย์ (X-ray)">
+          <option value="สังเกตอาการ">
+          <option value="กำลังช่วยฟื้นคืนชีพ (CPR)">
+          <option value="นอนพักค้าง / รอส่งต่อ">
+        </datalist>
+
         <button class="ok" onclick="addQueue()">เพิ่มคิว</button>
-        <span id="preview"></span>
       </div>
     </div>
 
@@ -126,7 +133,6 @@
       { key: 'green', name: 'เขียว', label: 'ไม่รุนแรง', target: 60, color: '#16a34a', text: '#fff' },
       { key: 'white', name: 'ขาว', label: 'ทั่วไป', target: 120, color: '#f8fafc', text: '#000' }
     ];
-    const ROOMS = ['ห้องฉุกเฉิน', 'ห้องฉีดยา-ทำแผล'];
     const SERVICE_STATUSES = ['รอพบแพทย์', 'กำลังตรวจรักษา', 'รอผลเลือด / แล็บ', 'รอเอกซเรย์ (X-ray)', 'สังเกตอาการ', 'กำลังช่วยฟื้นคืนชีพ (CPR)', 'นอนพักค้าง / รอส่งต่อ'];
 
     let state = { queues: [], calling: null };
@@ -177,11 +183,14 @@
       const level = document.getElementById('inLevel').value;
       const hn = document.getElementById('inHn').value.trim();
       const name = document.getElementById('inName').value.trim();
+      const serviceStatus = document.getElementById('inServiceStatus').value.trim() || 'รอพบแพทย์';
+      
       if (!name) return alert('กรุณากรอกชื่อ-สกุล');
       
-      socket.emit('add-queue', { level, hn, name });
+      socket.emit('add-queue', { level, hn, name, serviceStatus });
       document.getElementById('inHn').value = '';
       document.getElementById('inName').value = '';
+      document.getElementById('inServiceStatus').value = 'รอพบแพทย์';
     }
 
     function callQueue(id, room) {
@@ -215,7 +224,7 @@
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
@@ -226,7 +235,6 @@
     }
 
     function render() {
-      // Render Now Calling
       const nc = document.getElementById('nowCalling');
       if (state.calling) {
         const c = state.calling;
@@ -243,7 +251,6 @@
         nc.innerHTML = `<div class="muted">รอเรียกคิว...</div>`;
       }
 
-      // Render Lanes
       const container = document.getElementById('lanesContainer');
       container.innerHTML = '';
       LEVELS.forEach(lvl => {
@@ -266,7 +273,6 @@
         container.appendChild(lane);
       });
 
-      // Render Staff Table
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = state.queues.map(q => {
         const lvlObj = LEVELS.find(l => l.key === q.level) || {};
