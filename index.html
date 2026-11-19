@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ระบบเรียกคิวห้องฉุกเฉิน โรงพยาบาลบางแพ</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;800&display=swap" rel="stylesheet">
-<script src="/socket.io/socket.io.js"></script>
-<style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบเรียกคิวห้องฉุกเฉิน โรงพยาบาลบางแพ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Sarabun',sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
 .hidden{display:none!important}
@@ -104,7 +104,7 @@ td small{color:#64748b}
   </div>
 </section>
 <script>
-var socket = io();
+  const socket = io();
 var CONFIG = { MAX_PER_LANE: 8, ANNOUNCE_TIMES: 1, MAX_Q_DIGITS: 3 };
 var LEVELS = [
   {key:'red', name:'แดง', label:'วิกฤต', target:0, color:'#dc2626', text:'#fff'},
