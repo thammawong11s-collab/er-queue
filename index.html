@@ -6,373 +6,106 @@
   <title>ระบบเรียกคิวห้องฉุกเฉิน โรงพยาบาลบางแพ</title>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;800&display=swap" rel="stylesheet">
   <script src="/socket.io/socket.io.js"></script>
-</head>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Sarabun',sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
-.hidden{display:none!important}
-#connectionStatus{position:fixed;top:10px;right:10px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;z-index:999;background:#dc2626;color:#fff}
-#connectionStatus.connected{background:#16a34a}
-#board{padding:16px;min-height:100vh;display:flex;flex-direction:column;gap:14px}
-.top{display:flex;justify-content:space-between;align-items:center}
-.top h1{font-size:32px}
-.hospital-title{color:#38bdf8;font-weight:600;font-size:22px;display:block;margin-bottom:2px}
-#clock{font-size:32px;font-weight:800}
-#nowCalling{border-radius:14px;padding:20px 24px;display:flex;align-items:center;gap:20px;background:#1e293b;border:3px solid #334155;min-height:110px;flex-wrap:wrap}
-#nowCalling.flash{animation:flash .8s 4}
-@keyframes flash{50%{background:#475569;border-color:#facc15}}
-#nowCalling .label{font-size:22px;color:#94a3b8}
-#nowCalling .q{font-size:64px;font-weight:800;padding:2px 22px;border-radius:12px;border:1px solid #0003}
-#nowCalling .lvl{font-size:26px;font-weight:700;padding:4px 14px;border-radius:999px;border:1px solid #0003}
-#nowCalling .info{font-size:36px;font-weight:600}
-#nowCalling .room{font-size:42px;font-weight:800;margin-left:auto;color:#facc15}
-#lanes{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;flex:1}
-.lane{background:#1e293b;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
-.lane h2{padding:10px;font-size:22px;text-align:center}
-.lane h2 small{display:block;font-size:13px;font-weight:400}
-.lane ul{list-style:none;padding:8px;display:flex;flex-direction:column;gap:6px}
-.lane li{background:#0f172a;border-radius:8px;padding:8px 10px;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:18px}
-.lane li b{font-size:22px}
-.lane li.called{outline:2px solid #facc15}
-.lane li.overdue .wait{color:#f87171;font-weight:800;animation:blink 1s infinite}
-@keyframes blink{50%{opacity:.3}}
-.qb{padding:1px 8px;border-radius:6px;border:1px solid #0003}
-.wait{font-size:14px;color:#94a3b8;text-align:right}
-.status-badge{font-size:12px;padding:2px 6px;border-radius:4px;background:#334155;color:#f8fafc;margin-top:2px;display:inline-block}
-.more,.empty{font-size:14px;text-align:center;color:#64748b;padding:6px}
-#soundHint{position:absolute;right:16px;bottom:16px;background:#facc15;color:#000;padding:8px 14px;border-radius:999px;font-weight:700;cursor:pointer;z-index:10}
-#staff{background:#f1f5f9;color:#0f172a;padding:16px;min-height:100vh}
-#staff h2{margin-bottom:12px}
-.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0002}
-.card h3{margin-bottom:10px}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-input,select,button{font-family:inherit;font-size:16px;padding:8px 12px;border-radius:8px;border:1px solid #cbd5e1}
-button{cursor:pointer;background:#2563eb;color:#fff;border:none;font-weight:600}
-button.ok{background:#16a34a}
-button.danger{background:#dc2626}
-table{width:100%;border-collapse:collapse}
-th,td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:middle}
-td small{color:#64748b}
-.tag{padding:2px 10px;border-radius:999px;font-weight:700;font-size:14px;border:1px solid #0003;white-space:nowrap}
-#preview{color:#64748b}
-.over{color:#dc2626;font-weight:800}
-.muted{color:#94a3b8}
-.manual{color:#d97706}
-</style>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Sarabun',sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
+    .hidden{display:none!important}
+    #connectionStatus{position:fixed;top:10px;right:10px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;z-index:999;background:#dc2626;color:#fff}
+    #connectionStatus.connected{background:#16a34a}
+    #board{padding:16px;min-height:100vh;display:flex;flex-direction:column;gap:14px}
+    .top{display:flex;justify-content:space-between;align-items:center}
+    .top h1{font-size:32px}
+    .hospital-title{color:#38bdf8;font-weight:600;font-size:22px;display:block;margin-bottom:2px}
+    #clock{font-size:32px;font-weight:800}
+    #nowCalling{border-radius:14px;padding:20px 24px;display:flex;align-items:center;gap:20px;background:#1e293b;border:3px solid #334155;min-height:110px;flex-wrap:wrap}
+    #nowCalling.flash{animation:flash .8s 4}
+    @keyframes flash{50%{background:#475569;border-color:#facc15}}
+    #nowCalling .lvl{font-size:26px;font-weight:700;padding:4px 14px;border-radius:999px;border:1px solid #0003}
+    #nowCalling .info{font-size:36px;font-weight:600}
+    #nowCalling .room{font-size:42px;font-weight:800;margin-left:auto}
+    #nowCalling .q{font-size:64px;font-weight:800;padding:2px 22px;border-radius:12px;border:1px solid #0003}
+    .lanes{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;flex:1}
+    .lane{background:#1e293b;border-radius:8px;padding:8px 10px;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:18px}
+    .lane li{font-size:22px}
+    .lane li.called{outline:2px solid #facc15}
+    .lane li.overdue .wait{color:#f87171;font-weight:800;animation:blink 1s infinite}
+    @keyframes blink{50%{opacity:.3}}
+    .qb{padding:1px 8px;border-radius:6px;border:1px solid #0003}
+    .wait{font-size:14px;color:#94a3b8;text-align:right}
+    .status-badge{font-size:12px;padding:2px 6px;border-radius:4px;background:#334155;color:#f8fafc;margin-top:2px;display:inline-block}
+    .more,.empty{font-size:14px;text-align:center;color:#64748b;padding:6px}
+    #soundHint{position:absolute;right:16px;bottom:16px;background:#facc15;color:#000;padding:8px 14px;cursor:pointer;z-index:10}
+    #staff{background:#f1f5f9;color:#0f172a;padding:16px;min-height:100vh}
+    #staff h2{margin-bottom:12px}
+    .card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0002}
+    .card h3{margin-bottom:10px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    input,select,button{font-family:inherit;font-size:14px;padding:8px 12px;border:1px solid #cbd5e1}
+    button.danger{background:#dc2626;color:#fff;border:none;font-weight:600}
+    button.ok{background:#16a34a}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left}
+    td small{color:#64748b}
+    .tag{padding:2px 10px;font-weight:700;font-size:14px;border:1px solid #0003;white-space:nowrap}
+    #preview{color:#64748b}
+    .over{color:#dc2626;font-weight:800}
+    .muted{color:#94a3b8}
+    .manual{d:d97706}
+  </style>
 </head>
 <body>
-<div id="connectionStatus">● กำลังเชื่อมต่อ...</div>
-<section id="board">
-  <div class="top">
-    <div>
-      <span class="hospital-title">🏥 โรงพยาบาลบางแพ</span>
-      <h1>ห้องฉุกเฉิน — ลำดับการรับบริการ</h1>
+  <div id="connectionStatus">กำลังเชื่อมต่อ...</div>
+  <div id="board">
+    <div class="top">
+      <div>
+        <span class="hospital-title">โรงพยาบาลบางแพ</span>
+        <h1>ห้องฉุกเฉิน — ลำดับการรับบริการ</h1>
+      </div>
+      <div id="clock">--:--:--</div>
     </div>
-    <div id="clock"></div>
+    <div id="nowCalling">
+      <div>รอเรียกคิว...</div>
+    </div>
+    <div class="lanes" id="lanesContainer"></div>
   </div>
-  <div id="nowCalling"></div>
-  <div id="lanes"></div>
-  <div class="more">ลำดับการเรียกพิจารณาตามความเร่งด่วนทางการแพทย์ ไม่ใช่ลำดับเลขคิวหรือลำดับการมาถึง</div>
-  <div id="soundHint">🔇 คลิกหน้าจอ 1 ครั้งเพื่อเปิดเสียงประกาศ</div>
-</section>
-<section id="staff" class="hidden">
-  <h2>🩺 แผงควบคุมเจ้าหน้าที่ (Triage) — โรงพยาบาลบางแพ</h2>
-  <div class="card">
-    <h3>ลงทะเบียน / คัดกรอง</h3>
-    <form id="regForm" class="row">
-      <input id="fFirst" placeholder="ชื่อ" required>
-      <input id="fLast" placeholder="นามสกุล" required>
-      <select id="fLevel"></select>
-      <input id="fQ" placeholder="เลขคิว (ว่าง = อัตโนมัติ)" size="16" autocomplete="off" inputmode="numeric" pattern="\d*">
-      <button type="submit">+ ออกคิว</button>
-      <span id="preview"></span>
-    </form>
-  </div>
-  <div class="card row">
-    <label>ห้องตรวจ: <select id="roomSel"></select></label>
-    <button onclick="callNext(getRoom())">📢 เรียกคิวถัดไป (ตามความเร่งด่วน)</button>
-    <button onclick="testSound()" style="background:#d97706">🔊 ทดสอบเสียง</button>
-    <a href="#board" target="_blank">เปิดจอแสดงผลในแท็บใหม่ ↗</a>
-    <span style="flex:1"></span>
-    <button class="danger" onclick="resetAll()">ล้างข้อมูลทั้งหมด</button>
-  </div>
-  <div class="card">
-    <h3>ผู้ป่วยในคิว</h3>
-    <table>
-      <thead><tr><th>คิว</th><th>ชื่อ-สกุล (บนจอ)</th><th>ระดับ</th><th>สถานะบริการ</th><th>รอ (นาที)</th><th>สถานะเรียก</th><th>จัดการ</th></tr></thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
-</section>
-<script>
-  const socket = io();
-var CONFIG = { MAX_PER_LANE: 8, ANNOUNCE_TIMES: 1, MAX_Q_DIGITS: 3 };
-var LEVELS = [
-  {key:'red', name:'แดง', label:'วิกฤต', target:0, color:'#dc2626', text:'#fff'},
-  {key:'pink', name:'ชมพู', label:'ฉุกเฉินเร่งด่วน', target:10, color:'#ec4899', text:'#fff'},
-  {key:'yellow', name:'เหลือง', label:'เร่งด่วน', target:30, color:'#facc15', text:'#000'},
-  {key:'green', name:'เขียว', label:'ไม่รุนแรง', target:60, color:'#16a34a', text:'#fff'},
-  {key:'white', name:'ขาว', label:'ทั่วไป', target:120, color:'#f8fafc', text:'#000'}
-];
-var ROOMS = ['ห้องฉุกเฉิน', 'ห้องฉีดยา-ทำแผล'];
-var SERVICE_STATUSES = ['รอพบแพทย์', 'กำลังตรวจรักษา', 'รอผลเลือด / แล็บ', 'รอเอกซเรย์ (X-ray)', 'สังเกตอาการ', 'กำลังช่วยฟื้นคืนชีพ (CPR)', 'นอนพักค้าง / รอส่งต่อ'];
-var L = {};
-for (var i = 0; i < LEVELS.length; i++) { L[LEVELS[i].key] = LEVELS[i]; }
-function $(s){ return document.querySelector(s); }
-var S = {date: new Date().toLocaleDateString('sv'), seq: 0, nid: 0, patients: [], last: null};
-var lastTs = null;
-function today(){ return new Date().toLocaleDateString('sv'); }
-function rollDay(){
-  if (S.date === today()) return false;
-  S.date = today(); S.seq = 0;
-  S.patients = S.patients.filter(function(p){ return p.status !== 'done'; });
-  return true;
-}
-function save(){ socket.emit('update-queue', S); render(); }
-var seg = (window.Intl && Intl.Segmenter) ? new Intl.Segmenter('th', {granularity:'grapheme'}) : null;
-function graphemes(s){ return seg ? Array.from(seg.segment(s), function(x){ return x.segment; }) : s.split(''); }
-function maskSurname(last){
-  var g = graphemes(String(last).trim());
-  if (g.length === 0) return '***';
-  return g.slice(0, g.length <= 2 ? 1 : 2).join('') + '***';
-}
-function publicName(p){ return p.first + ' ' + maskSurname(p.last); }
-function esc(s){
-  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
-    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-  });
-}
-function buildStatusOptions(cur){
-  var html = '';
-  for (var i = 0; i < SERVICE_STATUSES.length; i++) {
-    var st = SERVICE_STATUSES[i];
-    var sel = (cur === st) ? 'selected' : '';
-    html += '<option ' + sel + '>' + st + '</option>';
-  }
-  return html;
-}
-function isToday(p){ return new Date(p.regAt).toLocaleDateString('sv') === today(); }
-function qNum(q){ return parseInt(String(q).replace(/\D/g, ''), 10); }
-function usedBy(n){
-  for (var i = 0; i < S.patients.length; i++) {
-    if (isToday(S.patients[i]) && qNum(S.patients[i].q) === n) return S.patients[i];
-  }
-  return null;
-}
-function fmtQ(n){ return String(n).padStart(3, '0'); }
-function nextAutoQ(){
-  var n = S.seq || 0;
-  do { n++; } while (usedBy(n));
-  return {q: fmtQ(n), n: n};
-}
-function normalizeQ(input){
-  var s = String(input).trim().replace(/[\s-]/g, '');
-  var re = new RegExp('^\\d{1,' + CONFIG.MAX_Q_DIGITS + '}$');
-  if (!re.test(s)) return {error: 'พิมพ์เฉพาะตัวเลข 1–' + CONFIG.MAX_Q_DIGITS + ' หลัก'};
-  var n = parseInt(s, 10);
-  if (n < 1) return {error: 'เลขคิวต้องมากกว่า 0'};
-  var dup = usedBy(n);
-  if (dup) return {error: 'เลขคิว ' + fmtQ(n) + ' ถูกใช้แล้ว'};
-  return {q: fmtQ(n), n: n};
-}
-function addPatient(first, last, level, manualQ){
-  rollDay();
-  var manual = String(manualQ || '').trim() !== '';
-  var r = manual ? normalizeQ(manualQ) : nextAutoQ();
-  if (r.error){ alert(r.error); return false; }
-  S.seq = Math.max(S.seq || 0, r.n);
-  S.patients.push({id: ++S.nid, q: r.q, level: level, first: first, last: last, manual: manual, status: 'waiting', serviceStatus: 'รอพบแพทย์', regAt: Date.now(), room: ''});
-  save();
-  return true;
-}
-function callNext(room){
-  for (var i = 0; i < LEVELS.length; i++){
-    var lKey = LEVELS[i].key;
-    var targetP = null;
-    for (var j = 0; j < S.patients.length; j++){
-      var p = S.patients[j];
-      if (p.level === lKey && p.status === 'waiting'){
-        if (!targetP || p.regAt < targetP.regAt) targetP = p;
-      }
+
+  <script>
+    const socket = io();
+
+    const levels = [
+      { key: 'red', name: 'แดง', label: 'วิกฤต', target: 0, color: '#dc2626', text: '#fff' },
+      { key: 'pink', name: 'ชมพู', label: 'ฉุกเฉินเร่งด่วน', target: 10, color: '#ec4899', text: '#fff' },
+      { key: 'yellow', name: 'เหลือง', label: 'เร่งด่วน', target: 30, color: '#facc15', text: '#000' },
+      { key: 'green', name: 'เขียว', label: 'ไม่รุนแรง', target: 60, color: '#16a34a', text: '#fff' },
+      { key: 'white', name: 'ขาว', label: 'ทั่วไป', target: 120, color: '#f8fafc', text: '#000' }
+    ];
+
+    socket.on('connect', () => {
+      document.getElementById('connectionStatus').innerText = 'เชื่อมต่อแล้ว';
+      document.getElementById('connectionStatus').classList.add('connected');
+    });
+
+    socket.on('disconnect', () => {
+      document.getElementById('connectionStatus').innerText = 'ขาดการเชื่อมต่อ';
+      document.getElementById('connectionStatus').classList.remove('connected');
+    });
+
+    socket.on('init-state', (data) => {
+      updateBoard(data);
+    });
+
+    socket.on('sync-state', (data) => {
+      updateBoard(data);
+    });
+
+    function updateBoard(data) {
+      // ฟังก์ชันอัปเดตหน้าจอตามข้อมูลที่ได้รับจาก Server
     }
-    if (targetP) return callPatient(targetP.id, room);
-  }
-  alert('ไม่มีผู้ป่วยรอเรียก');
-}
-function callPatient(id, room){
-  var p = null;
-  for (var i = 0; i < S.patients.length; i++){
-    if (S.patients[i].id === id) { p = S.patients[i]; break; }
-  }
-  if (!p) return;
-  p.status = 'called'; p.room = room; p.serviceStatus = 'กำลังตรวจรักษา'; p.calledAt = Date.now();
-  S.last = {id: id, ts: Date.now()};
-  save();
-}
-function updateServiceStatus(id, newStatus){
-  for (var i = 0; i < S.patients.length; i++){
-    if (S.patients[i].id === id) { S.patients[i].serviceStatus = newStatus; break; }
-  }
-  save();
-}
-function done(id){
-  for (var i = 0; i < S.patients.length; i++){
-    if (S.patients[i].id === id) { S.patients[i].status = 'done'; S.patients[i].doneAt = Date.now(); break; }
-  }
-  save();
-}
-function resetAll(){
-  if (confirm('ล้างข้อมูลคิวทั้งหมด?')){ S = {date: today(), seq: 0, nid: 0, patients: [], last: null}; lastTs = null; save(); updatePreview(); }
-}
-function getRoom(){ return $('#roomSel').value; }
-function playAudioQueue(playlist){
-  if (!playlist || playlist.length === 0) return;
-  var audio = new Audio(playlist.shift());
-  audio.onended = function(){ playAudioQueue(playlist); };
-  audio.onerror = function(){ playAudioQueue(playlist); };
-  audio.play().catch(function(){});
-}
-function announce(p){
-  if (!p) return;
-  var playlist = ['audio/pleasesign.mp3.aac'];
-  var digits = String(p.q).replace(/\D/g, '').split('');
-  for (var i = 0; i < digits.length; i++){
-    playlist.push('audio/' + digits[i] + '.mp3.aac');
-  }
-  if (p.room === 'ห้องฉุกเฉิน') {
-    playlist.push('audio/room.mp3.aac', 'audio/ห้องฉุกเฉิน.mp3.aac');
-  } else if (p.room === 'ห้องฉีดยา-ทำแผล') {
-    playlist.push('audio/room.mp3.aac', 'audio/ห้องฉีดยา-ทำแผล.mp3.aac');
-  }
-  playAudioQueue(playlist);
-}
-function testSound(){ playAudioQueue(['audio/pleasesign.mp3.aac']); }
-function tag(l){ return '<span class="tag" style="background:' + l.color + ';color:' + l.text + '">' + l.name + '</span>'; }
-function waitMin(p){ return Math.floor((Date.now() - p.regAt) / 60000); }
-function isOver(p){ return p.status === 'waiting' && (L[p.level].target === 0 || waitMin(p) > L[p.level].target); }
-function levelOrder(k){
-  for (var i = 0; i < LEVELS.length; i++){ if (LEVELS[i].key === k) return i; }
-  return 99;
-}
-function render(){
-  var view = location.hash;
-  $('#board').classList.toggle('hidden', view === '#staff');
-  $('#staff').classList.toggle('hidden', view !== '#staff');
-  var nc = $('#nowCalling');
-  var lp = null;
-  if (S.last) {
-    for (var i = 0; i < S.patients.length; i++){
-      if (S.patients[i].id === S.last.id) { lp = S.patients[i]; break; }
-    }
-  }
-  if (lp){
-    var l = L[lp.level];
-    nc.innerHTML = '<span class="label">กำลังเรียก</span><span class="q" style="background:' + l.color + ';color:' + l.text + '">' + esc(lp.q) + '</span><span class="lvl" style="background:' + l.color + ';color:' + l.text + '">' + l.name + '</span><span class="info">คุณ' + esc(publicName(lp)) + ' (' + esc(lp.serviceStatus) + ')</span><span class="room">➜ ' + esc(lp.room) + '</span>';
-  } else {
-    nc.innerHTML = '<span class="info">รอเรียกคิว...</span>';
-  }
-  if (S.last && S.last.ts !== lastTs){
-    lastTs = S.last.ts;
-    if (view !== '#staff'){ nc.classList.remove('flash'); void nc.offsetWidth; nc.classList.add('flash'); announce(lp); }
-  }
-  var lanesHtml = '';
-  for (var i = 0; i < LEVELS.length; i++){
-    var lvl = LEVELS[i];
-    var list = [];
-    for (var j = 0; j < S.patients.length; j++){
-      if (S.patients[j].level === lvl.key && S.patients[j].status !== 'done') list.push(S.patients[j]);
-    }
-    list.sort(function(a, b){ return a.regAt - b.regAt; });
-    var itemsHtml = '';
-    var limit = Math.min(list.length, CONFIG.MAX_PER_LANE);
-    for (var k = 0; k < limit; k++){
-      var p = list[k];
-      var isCol = (p.status === 'called' ? 'called' : '');
-      var isOv = (isOver(p) ? 'overdue' : '');
-      var waitText = (p.status === 'called' ? '➜ ' + esc(p.room) : waitMin(p) + ' นาที');
-      itemsHtml += '<li class="' + isCol + ' ' + isOv + '"><b class="qb" style="background:' + lvl.color + ';color:' + lvl.text + '">' + esc(p.q) + '</b><div><div>' + esc(publicName(p)) + '</div><span class="status-badge">' + esc(p.serviceStatus) + '</span></div><span class="wait">' + waitText + '</span></li>';
-    }
-    var extra = list.length - CONFIG.MAX_PER_LANE;
-    var extraHtml = extra > 0 ? '<div class="more">และอีก ' + extra + ' ราย</div>' : '';
-    lanesHtml += '<div class="lane"><h2 style="background:' + lvl.color + ';color:' + lvl.text + '">' + lvl.name + '<small>' + lvl.label + ' · ' + list.length + ' ราย</small></h2><ul>' + (itemsHtml || '<div class="empty">— ไม่มีคิว —</div>') + '</ul>' + extraHtml + '</div>';
-  }
-  $('#lanes').innerHTML = lanesHtml;
-  var active = [];
-  for (var i = 0; i < S.patients.length; i++){
-    if (S.patients[i].status !== 'done') active.push(S.patients[i]);
-  }
-  active.sort(function(a, b){
-    var ord = levelOrder(a.level) - levelOrder(b.level);
-    return ord !== 0 ? ord : a.regAt - b.regAt;
-  });
-  var tbodyHtml = '';
-  for (var i = 0; i < active.length; i++){
-    var p = active[i];
-    var manualTag = p.manual ? ' <small class="manual">(ลงเอง)</small>' : '';
-    var overClass = isOver(p) ? 'over' : '';
-    var callBtnText = p.status === 'waiting' ? 'เรียก' : 'เรียกซ้ำ';
-    tbodyHtml += '<tr><td><b>' + esc(p.q) + '</b>' + manualTag + '</td><td>' + esc(p.first + ' ' + p.last) + '<br><small>บนจอ: ' + esc(publicName(p)) + '</small></td><td>' + tag(L[p.level]) + '</td><td><select onchange="updateServiceStatus(' + p.id + ', this.value)">' + buildStatusOptions(p.serviceStatus) + '</select></td><td class="' + overClass + '">' + waitMin(p) + '</td><td>' + (p.status === 'waiting' ? 'รอเรียก' : 'เรียกแล้ว ➜ ' + esc(p.room)) + '</td><td><button onclick="callPatient(' + p.id + ', getRoom())">' + callBtnText + '</button><button class="ok" onclick="done(' + p.id + ')">เสร็จ</button></td></tr>';
-  }
-  $('#tbody').innerHTML = tbodyHtml || '<tr><td colspan="7" style="text-align:center" class="muted">ไม่มีผู้ป่วยในคิว</td></tr>';
-}
-function updatePreview(){
-  var f = $('#fFirst').value.trim();
-  var l = $('#fLast').value.trim();
-  var lv = $('#fLevel') ? L[$('#fLevel').value] : LEVELS[0];
-  var mq = $('#fQ').value;
-  var qText;
-  if (mq.trim()){
-    var r = normalizeQ(mq);
-    qText = r.error ? '⚠️ ' + r.error : r.q;
-  } else {
-    qText = nextAutoQ().q + ' (อัตโนมัติ)';
-  }
-  $('#preview').textContent = (f && l) ? 'จอจะแสดง: ' + qText + ' [' + lv.name + ']  ' + f + ' ' + maskSurname(l) : 'เลขคิว: ' + qText + ' [' + lv.name + ']';
-}
-socket.on('init-state', function(st){
-  S = st;
-  lastTs = S.last ? S.last.ts : null;
-  var lvlHtml = '';
-  for (var i = 0; i < LEVELS.length; i++){
-    lvlHtml += '<option value="' + LEVELS[i].key + '">' + LEVELS[i].name + ' – ' + LEVELS[i].label + '</option>';
-  }
-  $('#fLevel').innerHTML = lvlHtml;
-  var roomHtml = '';
-  for (var i = 0; i < ROOMS.length; i++){
-    roomHtml += '<option>' + esc(ROOMS[i]) + '</option>';
-  }
-  $('#roomSel').innerHTML = roomHtml;
-  render();
-  updatePreview();
-});
-socket.on('sync-state', function(st){
-  S = st;
-  render();
-});
-$('#regForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  var ok = addPatient($('#fFirst').value.trim(), $('#fLast').value.trim(), $('#fLevel').value, $('#fQ').value);
-  if (!ok){ $('#fQ').select(); return; }
-  e.target.reset();
-  updatePreview();
-  $('#fFirst').focus();
-});
-var inputs = ['#fFirst', '#fLast', '#fQ'];
-for (var i = 0; i < inputs.length; i++){
-  $(inputs[i]).addEventListener('input', updatePreview);
-}
-$('#fLevel').addEventListener('change', updatePreview);
-window.addEventListener('hashchange', render);
-document.addEventListener('click', function(){
-  $('#soundHint').classList.add('hidden');
-}, {once: true});
-var tick = function(){ $('#clock').textContent = new Date().toLocaleTimeString('th-TH'); };
-tick();
-setInterval(tick, 1000);
-setInterval(function(){
-  if (rollDay()) save();
-  else render();
-  updatePreview();
-}, 30000);
-</script>
+
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
+    }, 1000);
+  </script>
 </body>
 </html>
