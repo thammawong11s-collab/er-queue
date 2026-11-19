@@ -337,7 +337,9 @@ function render(){
 
 function updatePreview(){
   const f = $('#fFirst').value.trim(), l = $('#fLast').value.trim();
-  const lv = L[$('#fLevel').value], mq = $('#fQ').value;
+  const levelSelect = $('#fLevel');
+  const lv = levelSelect ? L[levelSelect.value] : LEVELS[0];
+  const mq = $('#fQ').value;
   let qText;
   if (mq.trim()){
     const r = normalizeQ(mq);
@@ -357,7 +359,7 @@ $('#regForm').addEventListener('submit', e => {
     $('#fFirst').value.trim(), $('#fLast').value.trim(), $('#fLevel').value,
     $('#fQ').value
   );
-  if (!ok){ $('#fQ'].select(); return; }
+  if (!ok){ $('#fQ').select(); return; }
   e.target.reset(); updatePreview();
   $('#fFirst').focus();
 });
