@@ -4,22 +4,16 @@ const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 const path = require('path');
 
-app.use(express.static(path.join(__dirname)));
-
-let queueState = {
-  date: new Date().toLocaleDateString('sv'),
-  seq: 0,
-  nid: 0,
-  patients: [],
-  last: null
-};
+app.use(express.static(path.join(__dirname, '/')));
 
 io.on('connection', (socket) => {
-  socket.emit('init-state', queueState);
+  console.log('Client connected:', socket.id);
 
-  socket.on('update-queue', (newState) => {
-    queueState = newState;
-    io.emit('sync-state', queueState);
+  // ส่งข้อมูลเริ่มต้นให้ Client ทันทีที่เชื่อมต่อ
+  socket.emit('init-state', { queues: [] });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
   });
 });
 
