@@ -5,10 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ระบบเรียกคิวห้องฉุกเฉิน</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="/socket.io/socket.io.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Sarabun',sans-serif;background:#0f172a;color:#e2e8f0}
 .hidden{display:none!important}
+#connectionStatus{position:fixed;top:10px;right:10px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;z-index:999;background:#dc2626;color:#fff}
+#connectionStatus.connected{background:#16a34a}
 
 /* ===== จอแสดงผล (ทีวี) ===== */
 #board{padding:16px;min-height:100vh;display:flex;flex-direction:column;gap:14px;position:relative}
@@ -60,6 +63,8 @@ td small{color:#64748b}
 </head>
 <body>
 
+<div id="connectionStatus">● กำลังเชื่อมต่อ...</div>
+
 <!-- ================= จอแสดงผล (ทีวี) ================= -->
 <section id="board">
   <div class="top">
@@ -106,15 +111,37 @@ td small{color:#64748b}
 </section>
 
 <script>
-/* =====================================================
-   1. การตั้งค่า (ปรับแก้ได้ตามโรงพยาบาล)
-   ===================================================== */
+const socket = io();
+
+socket.on('connect', () => {
+  const el = document.getElementById('connectionStatus');
+  el.textContent = '● เชื่อมต่อ Realtime แล้ว';
+  el.classList.add('connected');
+});
+
+socket.on('disconnect', () => {
+  const el = document.getElementById('connectionStatus');
+  el.textContent = '● ขาดการเชื่อมต่อ';
+  el.classList.remove('connected');
+});
+
+socket.on('init-state', (serverState) => {
+  S = serverState;
+  lastTs = S.last ? S.last.ts : null;
+  render();
+  updatePreview();
+});
+
+socket.on('sync-state', (serverState) => {
+  S = serverState;
+  render();
+});
+
 const CONFIG = {
-  MAX_PER_LANE: 8,         // จำนวนรายชื่อสูงสุดต่อคอลัมน์บนจอทีวี
-  ANNOUNCE_TIMES: 2,       // ประกาศเสียงซ้ำกี่รอบ
-  MAX_Q_DIGITS: 3,         // จำนวนหลักสูงสุดของเลขคิวที่ลงเอง
+  MAX_PER_LANE: 8,
+  ANNOUNCE_TIMES: 2,
+  MAX_Q_DIGITS: 3,
 };
-// target = เวลารอสูงสุด (นาที) — ปรับให้ตรงเกณฑ์คัดกรองของโรงพยาบาล
 const LEVELS = [
   {key:'red',    name:'แดง',   label:'วิกฤต',           target:0,   color:'#dc2626', text:'#fff'},
   {key:'pink',   name:'ชมพู',  label:'ฉุกเฉินเร่งด่วน', target:10,  color:'#ec4899', text:'#fff'},
@@ -123,32 +150,24 @@ const LEVELS = [
   {key:'white',  name:'ขาว',   label:'ทั่วไป',          target:120, color:'#f8fafc', text:'#000'},
 ];
 const ROOMS = ['ห้องฉุกเฉิน', 'ห้องฉีดยา-ทำแผล'];
-
 const L = Object.fromEntries(LEVELS.map(l => [l.key, l]));
-const STORE = 'er-queue-v3';
 const $ = s => document.querySelector(s);
 
-/* =====================================================
-   2. จัดการข้อมูล
-   ===================================================== */
-const today = () => new Date().toLocaleDateString('sv');   // YYYY-MM-DD
-const fresh = () => ({date: today(), seq: 0, nid: 0, patients: [], last: null});
-function load(){ try { return JSON.parse(localStorage.getItem(STORE)) || fresh(); } catch { return fresh(); } }
-let S = load();
-let lastTs = S.last ? S.last.ts : null;   // กันประกาศซ้ำตอนรีเฟรชหน้า
+let S = {date: new Date().toLocaleDateString('sv'), seq: 0, nid: 0, patients: [], last: null};
+let lastTs = null;
 
-// ขึ้นวันใหม่: รีเซ็ตเลขคิว ลบเคสที่เสร็จแล้ว (ผู้ป่วยที่ค้างอยู่ยังอยู่ต่อ)
+const today = () => new Date().toLocaleDateString('sv');
 function rollDay(){
   if (S.date === today()) return false;
   S.date = today(); S.seq = 0;
   S.patients = S.patients.filter(p => p.status !== 'done');
   return true;
 }
-function save(){ localStorage.setItem(STORE, JSON.stringify(S)); render(); }
+function save(){
+  socket.emit('update-queue', S);
+  render();
+}
 
-/* =====================================================
-   3. ปกปิดนามสกุล (รองรับสระ/วรรณยุกต์ไทย)
-   ===================================================== */
 const seg = (window.Intl && Intl.Segmenter) ? new Intl.Segmenter('th', {granularity:'grapheme'}) : null;
 const graphemes = s => seg ? [...seg.segment(s)].map(x => x.segment) : Array.from(s);
 function maskSurname(last){
@@ -159,9 +178,6 @@ function maskSurname(last){
 const publicName = p => `${p.first} ${maskSurname(p.last)}`;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* =====================================================
-   4. เลขคิว (ชุดเดียวทุกสี: 001, 002, 003 ...)
-   ===================================================== */
 const isToday = p => new Date(p.regAt).toLocaleDateString('sv') === today();
 const qNum    = q => parseInt(String(q).replace(/\D/g, ''), 10);
 const usedBy  = n => S.patients.find(p => isToday(p) && qNum(p.q) === n);
@@ -169,7 +185,7 @@ const fmtQ    = n => String(n).padStart(3, '0');
 
 function nextAutoQ(){
   let n = S.seq || 0;
-  do { n++; } while (usedBy(n));      // ข้ามเลขที่ถูกใช้แล้ว
+  do { n++; } while (usedBy(n));
   return {q: fmtQ(n), n};
 }
 
@@ -184,15 +200,12 @@ function normalizeQ(input){
   return {q: fmtQ(n), n};
 }
 
-/* =====================================================
-   5. การทำงานหลัก
-   ===================================================== */
 function addPatient(first, last, level, manualQ = ''){
   rollDay();
   const manual = String(manualQ).trim() !== '';
   const r = manual ? normalizeQ(manualQ) : nextAutoQ();
   if (r.error){ alert(r.error); return false; }
-  S.seq = Math.max(S.seq || 0, r.n);   // เลขอัตโนมัติจะต่อจากเลขนี้
+  S.seq = Math.max(S.seq || 0, r.n);
   S.patients.push({id: ++S.nid, q: r.q, level, first, last, manual,
                    status: 'waiting', regAt: Date.now(), room: ''});
   save();
@@ -224,13 +237,15 @@ function done(id){
 }
 
 function resetAll(){
-  if (confirm('ล้างข้อมูลคิวทั้งหมด?')){ S = fresh(); lastTs = null; save(); updatePreview(); }
+  if (confirm('ล้างข้อมูลคิวทั้งหมด?')){ 
+    S = {date: today(), seq: 0, nid: 0, patients: [], last: null}; 
+    lastTs = null; 
+    save(); 
+    updatePreview(); 
+  }
 }
 const getRoom = () => $('#roomSel').value;
 
-/* =====================================================
-   6. เสียงประกาศ (อ่านเลขคิว + ชื่อจริง ไม่อ่านนามสกุล)
-   ===================================================== */
 const DIGIT = ['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
 function announce(p){
   if (!p || !('speechSynthesis' in window)) return;
@@ -244,9 +259,6 @@ function announce(p){
   }
 }
 
-/* =====================================================
-   7. การแสดงผล
-   ===================================================== */
 const tag = l => `<span class="tag" style="background:${l.color};color:${l.text}">${l.name}</span>`;
 const waitMin = p => Math.floor((Date.now() - p.regAt) / 60000);
 const isOver = p => p.status === 'waiting' && (L[p.level].target === 0 || waitMin(p) > L[p.level].target);
@@ -257,7 +269,6 @@ function render(){
   $('#board').classList.toggle('hidden', view === '#staff');
   $('#staff').classList.toggle('hidden', view === '#board');
 
-  // --- แถบ "กำลังเรียก" ---
   const nc = $('#nowCalling');
   const lp = S.last && S.patients.find(p => p.id === S.last.id);
   if (lp){
@@ -277,7 +288,6 @@ function render(){
     }
   }
 
-  // --- คอลัมน์ตามสี ---
   $('#lanes').innerHTML = LEVELS.map(l => {
     const list = S.patients.filter(p => p.level === l.key && p.status !== 'done')
                            .sort((a, b) => a.regAt - b.regAt);
@@ -295,7 +305,6 @@ function render(){
     </div>`;
   }).join('');
 
-  // --- ตารางเจ้าหน้าที่ ---
   const active = S.patients.filter(p => p.status !== 'done')
                   .sort((a, b) => levelOrder(a.level) - levelOrder(b.level) || a.regAt - b.regAt);
   $('#tbody').innerHTML = active.map(p => `
@@ -325,9 +334,6 @@ function updatePreview(){
     : `เลขคิว: ${qText} [${lv.name}]`;
 }
 
-/* =====================================================
-   8. เริ่มต้นระบบ
-   ===================================================== */
 $('#fLevel').innerHTML = LEVELS.map(l => `<option value="${l.key}">${l.name} – ${l.label}</option>`).join('');
 $('#roomSel').innerHTML = ROOMS.map(r => `<option>${esc(r)}</option>`).join('');
 
@@ -337,21 +343,15 @@ $('#regForm').addEventListener('submit', e => {
     $('#fFirst').value.trim(), $('#fLast').value.trim(), $('#fLevel').value,
     $('#fQ').value
   );
-  if (!ok){ $('#fQ').select(); return; }   // เลขผิดหรือซ้ำ ให้แก้ไขได้ทันที
+  if (!ok){ $('#fQ').select(); return; }
   e.target.reset(); updatePreview();
   $('#fFirst').focus();
 });
 
 ['#fFirst', '#fLast', '#fQ'].forEach(s => $(s).addEventListener('input', updatePreview));
 $('#fLevel').addEventListener('change', updatePreview);
-
-// ซิงก์ข้อมูลอัตโนมัติเมื่อเปิดหลายแท็บในเครื่องเดียวกัน
-window.addEventListener('storage', e => {
-  if (e.key === STORE){ S = load(); render(); updatePreview(); }
-});
 window.addEventListener('hashchange', render);
 
-// ปลดล็อกเสียงบนจอทีวีเมื่อมีการคลิกครั้งแรก
 document.addEventListener('click', () => {
   $('#soundHint').classList.add('hidden');
   if ('speechSynthesis' in window) speechSynthesis.speak(new SpeechSynthesisUtterance(''));
@@ -359,11 +359,8 @@ document.addEventListener('click', () => {
 
 const tick = () => $('#clock').textContent = new Date().toLocaleTimeString('th-TH');
 tick(); setInterval(tick, 1000);
-setInterval(() => { if (rollDay()) save(); else render(); updatePreview(); }, 30000); // อัปเดตเวลารอ + ตรวจวันใหม่
+setInterval(() => { if (rollDay()) save(); else render(); updatePreview(); }, 30000);
 
-rollDay();
-save();
-updatePreview();
 $('#fFirst').focus();
 </script>
 </body>
