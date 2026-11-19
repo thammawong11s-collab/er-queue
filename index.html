@@ -62,7 +62,7 @@
         <h1>ห้องฉุกเฉิน — ลำดับการรับบริการ</h1>
       </div>
       <div style="display:flex;gap:16px;align-items:center;">
-        <a href="#board" onclick="switchView('staff')" style="color:#38bdf8;font-size:14px;text-decoration:none;">[ ไปหน้าเจ้าหน้าที่ ]</a>
+        <a href="#staff" onclick="switchView('staff')" style="color:#38bdf8;font-size:14px;text-decoration:none;">[ ไปหน้าเจ้าหน้าที่ ]</a>
         <div id="clock">--:--:--</div>
       </div>
     </div>
@@ -76,7 +76,7 @@
   <div id="staff" class="hidden">
     <div class="top" style="margin-bottom:16px;">
       <h2>ระบบจัดการคิวห้องฉุกเฉิน (เจ้าหน้าที่)</h2>
-      <a href="#" onclick="switchView('board')" style="color:#0284c7;font-weight:600;">[ กลับหน้าจอแสดงผล ]</a>
+      <a href="#board" onclick="switchView('board')" style="color:#0284c7;font-weight:600;">[ กลับหน้าจอแสดงผล ]</a>
     </div>
 
     <div class="card">
@@ -138,6 +138,19 @@
     let state = { queues: [], calling: null };
     let audioUnlocked = false;
 
+    // ฟังก์ชันสำหรับแปลงนามสกุลให้เป็น *** (เช่น สมชาย ใจดี -> สมชาย ใจ***)
+    function maskName(fullName) {
+      if (!fullName) return '';
+      const parts = fullName.trim().split(/\s+/);
+      if (parts.length > 1) {
+        const lastName = parts[parts.length - 1];
+        const maskedLastName = lastName.charAt(0) + '***';
+        parts[parts.length - 1] = maskedLastName;
+        return parts.join(' ');
+      }
+      return fullName;
+    }
+
     document.getElementById('soundHint').addEventListener('click', () => {
       audioUnlocked = true;
       document.getElementById('soundHint').style.display = 'none';
@@ -169,7 +182,7 @@
       playAlertSound();
     });
 
-        function switchView(view) {
+    function switchView(view) {
       if (view === 'staff') {
         document.getElementById('board').classList.add('hidden');
         document.getElementById('staff').classList.remove('hidden');
@@ -246,7 +259,7 @@
         nc.innerHTML = `
           <div class="lvl" style="background:${lvlObj.color}; color:${lvlObj.text}">${lvlObj.name} - ${lvlObj.label}</div>
           <div class="q">${c.code}</div>
-          <div class="info">${c.name} <small>(${c.hn || 'ไม่มี HN'})</small></div>
+          <div class="info">${maskName(c.name)} <small>(${c.hn || 'ไม่มี HN'})</small></div>
           <div class="room">📍 ${c.room || 'ห้องฉุกเฉิน'}</div>
         `;
         setTimeout(() => nc.classList.remove('flash'), 4000);
@@ -266,7 +279,7 @@
             <li>
               <div>
                 <span class="qb" style="background:${lvl.color}; color:${lvl.text}">${q.code}</span>
-                <span>${q.name}</span>
+                <span>${maskName(q.name)}</span>
                 <br><span class="status-badge">${q.serviceStatus || 'รอพบแพทย์'}</span>
               </div>
               <div class="wait">${Math.floor((Date.now() - q.time) / 60000)} นาที</div>
@@ -283,7 +296,7 @@
         return `
           <tr>
             <td><span class="tag" style="background:${lvlObj.color}; color:${lvlObj.text}">${q.code}</span></td>
-            <td><b>${q.name}</b><br><small>HN: ${q.hn || '-'}</small></td>
+            <td><b>${maskName(q.name)}</b><br><small>HN: ${q.hn || '-'}</small></td>
             <td>${lvlObj.name}</td>
             <td>
               <select onchange="updateStatus('${q.id}', this.value)">
