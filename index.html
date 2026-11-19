@@ -378,8 +378,8 @@ function render(){
   const active = S.patients.filter(p => p.status !== 'done')
                   .sort((a, b) => levelOrder(a.level) - levelOrder(b.level) || a.regAt - b.regAt);
   
-  $('#tbody').innerHTML = active.map(p => `
-    <tr>
+  $('#tbody').innerHTML = active.map(p => {
+    return `<tr>
       <td><b>${esc(p.q)}</b>${p.manual ? ' <small class="manual">(ลงเอง)</small>' : ''}</td>
       <td>${esc(p.first + ' ' + p.last)}<br><small>บนจอ: ${esc(publicName(p))}</small></td>
       <td>${tag(L[p.level])}</td>
@@ -394,7 +394,8 @@ function render(){
         <button onclick="callPatient(${p.id}, getRoom())">${p.status === 'waiting' ? 'เรียก' : 'เรียกซ้ำ'}</button>
         <button class="ok" onclick="done(${p.id})">เสร็จ</button>
       </td>
-    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center" class="muted">ไม่มีผู้ป่วยในคิว</td></tr>';
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" style="text-align:center" class="muted">ไม่มีผู้ป่วยในคิว</td></tr>';
 }
 
 function updatePreview(){
