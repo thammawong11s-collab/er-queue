@@ -337,11 +337,15 @@ function render(){
 
   if (lp){
     const l = L[lp.level];
+    const safeQ = esc(lp.q);
+    const safeName = esc(publicName(lp));
+    const safeStatus = esc(lp.serviceStatus);
+    const safeRoom = esc(lp.room);
     nc.innerHTML = ecgBgSvg + `<span class="label">กำลังเรียก</span>
-      <span class="q" style="background:${l.color};color:${l.text}">${esc(lp.q)}</span>
+      <span class="q" style="background:${l.color};color:${l.text}">${safeQ}</span>
       <span class="lvl" style="background:${l.color};color:${l.text}">${l.name}</span>
-      <span class="info">คุณ${esc(publicName(lp))} (${esc(lp.serviceStatus)})</span>
-      <span class="room">➜ ${esc(lp.room)}</span>`;
+      <span class="info">คุณ${safeName} (${safeStatus})</span>
+      <span class="room">➜ ${safeRoom}</span>`;
   } else {
     nc.innerHTML = ecgBgSvg + '<span class="info">รอเรียกคิว...</span>';
   }
@@ -358,13 +362,18 @@ function render(){
     const list = S.patients.filter(p => p.level === l.key && p.status !== 'done')
                            .sort((a, b) => a.regAt - b.regAt);
     const items = list.slice(0, CONFIG.MAX_PER_LANE).map(p => {
+      const q = esc(p.q);
+      const name = esc(publicName(p));
+      const status = esc(p.serviceStatus);
+      const room = esc(p.room);
+      const wait = p.status === 'called' ? '➜ ' + room : waitMin(p) + ' นาที';
       return `<li class="${p.status === 'called' ? 'called' : ''} ${isOver(p) ? 'overdue' : ''}">
-        <b class="qb" style="background:${l.color};color:${l.text}">${esc(p.q)}</b>
+        <b class="qb" style="background:${l.color};color:${l.text}">${q}</b>
         <div>
-          <div>${esc(publicName(p))}</div>
-          <span class="status-badge">${esc(p.serviceStatus)}</span>
+          <div>${name}</div>
+          <span class="status-badge">${status}</span>
         </div>
-        <span class="wait">${p.status === 'called' ? '➜ ' + esc(p.room) : waitMin(p) + ' นาที'}</span>
+        <span class="wait">${wait}</span>
       </li>`;
     }).join('');
     const extra = list.length - CONFIG.MAX_PER_LANE;
@@ -379,17 +388,24 @@ function render(){
                   .sort((a, b) => levelOrder(a.level) - levelOrder(b.level) || a.regAt - b.regAt);
   
   $('#tbody').innerHTML = active.map(p => {
+    const q = esc(p.q);
+    const fullName = esc(p.first + ' ' + p.last);
+    const pubName = esc(publicName(p));
+    const wait = waitMin(p);
+    const room = esc(p.room);
+    const options = SERVICE_STATUSES.map(st => `<option ${p.serviceStatus === st ? 'selected' : ''}>${st}</option>`).join('');
+    
     return `<tr>
-      <td><b>${esc(p.q)}</b>${p.manual ? ' <small class="manual">(ลงเอง)</small>' : ''}</td>
-      <td>${esc(p.first + ' ' + p.last)}<br><small>บนจอ: ${esc(publicName(p))}</small></td>
+      <td><b>${q}</b>${p.manual ? ' <small class="manual">(ลงเอง)</small>' : ''}</td>
+      <td>${fullName}<br><small>บนจอ: ${pubName}</small></td>
       <td>${tag(L[p.level])}</td>
       <td>
         <select onchange="updateServiceStatus(${p.id}, this.value)">
-          ${SERVICE_STATUSES.map(st => `<option ${p.serviceStatus === st ? 'selected' : ''}>${st}</option>`).join('')}
+          ${options}
         </select>
       </td>
-      <td class="${isOver(p) ? 'over' : ''}">${waitMin(p)}</td>
-      <td>${p.status === 'waiting' ? 'รอเรียก' : 'เรียกแล้ว ➜ ' + esc(p.room)}</td>
+      <td class="${isOver(p) ? 'over' : ''}">${wait}</td>
+      <td>${p.status === 'waiting' ? 'รอเรียก' : 'เรียกแล้ว ➜ ' + room}</td>
       <td>
         <button onclick="callPatient(${p.id}, getRoom())">${p.status === 'waiting' ? 'เรียก' : 'เรียกซ้ำ'}</button>
         <button class="ok" onclick="done(${p.id})">เสร็จ</button>
