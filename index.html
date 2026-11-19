@@ -140,7 +140,7 @@ socket.on('sync-state', (serverState) => {
 
 const CONFIG = {
   MAX_PER_LANE: 8,
-  ANNOUNCE_TIMES: 2,
+  ANNOUNCE_TIMES: 1,
   MAX_Q_DIGITS: 3,
 };
 const LEVELS = [
@@ -247,29 +247,31 @@ function resetAll(){
 }
 const getRoom = () => $('#roomSel').value;
 
-const DIGIT = ['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+// ระบบเล่นไฟล์เสียง .aac แบบต่อคิวลำดับ
+function playAudioQueue(playlist) {
+  if (!playlist || playlist.length === 0) return;
+  const audio = new Audio(playlist.shift());
+  audio.onended = () => playAudioQueue(playlist);
+  audio.onerror = () => playAudioQueue(playlist);
+  audio.play().catch(() => {});
+}
+
 function announce(p){
-  if (!p || !('speechSynthesis' in window)) return;
-  const qText = [...String(p.q).replace(/\D/g, '')].map(d => DIGIT[d]).join(' ');
-  const msg = `ขอเชิญหมายเลข ${qText} คุณ${p.first} ที่ ${p.room} ค่ะ`;
-  speechSynthesis.cancel();
-  for (let i = 0; i < CONFIG.ANNOUNCE_TIMES; i++){
-    const u = new SpeechSynthesisUtterance(msg);
-    u.lang = 'th-TH'; u.rate = 0.9;
-    speechSynthesis.speak(u);
+  if (!p) return;
+  let playlist = ['audio/pleasesign.mp3.aac'];
+  const digits = [...String(p.q).replace(/\D/g, '')];
+  digits.forEach(d => playlist.push(`audio/${d}.mp3.aac`));
+  
+  if (p.room === 'ห้องฉุกเฉิน') {
+    playlist.push('audio/room.mp3.aac', 'audio/ห้องฉุกเฉิน.mp3.aac');
+  } else if (p.room === 'ห้องฉีดยา-ทำแผล') {
+    playlist.push('audio/room.mp3.aac', 'audio/ห้องฉีดยา-ทำแผล.mp3.aac');
   }
+  playAudioQueue(playlist);
 }
 
 function testSound(){
-  if (!('speechSynthesis' in window)){
-    alert('เบราว์เซอร์นี้ไม่รองรับระบบเสียงพูด');
-    return;
-  }
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance('ทดสอบระบบเสียงประกาศ ห้องฉุกเฉิน');
-  u.lang = 'th-TH';
-  u.rate = 0.9;
-  speechSynthesis.speak(u);
+  playAudioQueue(['audio/pleasesign.mp3.aac']);
 }
 
 const tag = l => `<span class="tag" style="background:${l.color};color:${l.text}">${l.name}</span>`;
@@ -336,7 +338,7 @@ function render(){
 
 function updatePreview(){
   const f = $('#fFirst').value.trim(), l = $('#fLast').value.trim();
-  const lv = L[$('#fLevel').value], mq = $('#fQ').value;
+  const lv = L[$('#fLevel->value') || $('#fLevel').value], mq = $('#fQ').value;
   let qText;
   if (mq.trim()){
     const r = normalizeQ(mq);
@@ -367,7 +369,6 @@ window.addEventListener('hashchange', render);
 
 document.addEventListener('click', () => {
   $('#soundHint').classList.add('hidden');
-  if ('speechSynthesis' in window) speechSynthesis.speak(new SpeechSynthesisUtterance(''));
 }, {once: true});
 
 const tick = () => $('#clock').textContent = new Date().toLocaleTimeString('th-TH');
