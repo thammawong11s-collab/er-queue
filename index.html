@@ -120,14 +120,24 @@
     </div>
 
     <div class="card">
-      <h3>ผู้ป่วยในคิว</h3>
-      <table>
-        <thead>
-          <tr><th>คิว</th><th>HN / ชื่อ-สกุล</th><th>ระดับ</th><th>สถานะบริการ</th><th>รอ (นาที)</th><th>สถานะเรียก</th><th>จัดการ</th></tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
+           <div class="card">
+        <h3>ผู้ป่วยในคิว</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>คิว</th>
+              <th>HN / ชื่อ-สกุล</th>
+              <th>ระดับ</th>
+              <th>Re-triage</th>
+              <th>สถานะบริการ</th>
+              <th>สถานะเรียก</th>
+              <th>รอ (นาที)</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
     
     <div class="card">
       <button class="danger" onclick="resetAll()">ล้างข้อมูลทั้งหมด</button>
@@ -305,25 +315,33 @@
         const lvlObj = LEVELS.find(l => l.key === q.level) || {};
         const waitMin = Math.floor((Date.now() - q.time) / 60000);
         return `
-          <tr>
-            <td><span class="tag" style="background:${lvlObj.color}; color:${lvlObj.text}">${q.code}</span></td>
-            <td><b>${maskName(q.name)}</b><br><small>HN: ${q.hn || '-'}</small></td>
-                <td>${lvlObj.name}</td>
-    <td>
-      <select onchange="updateLevel('${q.id}', this.value)" style="font-weight:bold; color:${lvlObj.color}; padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; background: #fff; cursor: pointer;">
-        <option value="red" ${q.level === 'red' ? 'selected' : ''}>[ แดง - วิกฤต ]</option>
-        <option value="pink" ${q.level === 'pink' ? 'selected' : ''}>[ ชมพู - ฉุกเฉินเร่งด่วน ]</option>
-        <option value="yellow" ${q.level === 'yellow' ? 'selected' : ''}>[ เหลือง - เร่งด่วน ]</option>
-        <option value="green" ${q.level === 'green' ? 'selected' : ''}>[ เขียว - ไม่รุนแรง ]</option>
-        <option value="white" ${q.level === 'white' ? 'selected' : ''}>[ ขาว - ทั่วไป ]</option>
-      </select>
-    </td>
-    <td>
-      <select onchange="updateStatus('${q.id}', this.value)" style="padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; background: #fff; cursor: pointer;">
-        ${SERVICE_STATUSES.map(s => `<option ${q.serviceStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
-      </select>
-    </td>
-              
+              return `
+    <tr>
+      <td><span class="tag" style="background:${lvlObj.color}; color:${lvlObj.text}">${q.code}</span></td>
+      <td><b>${maskName(q.name)}</b><br><small>HN: ${q.hn || '-'}</small></td>
+      <td>${lvlObj.name}</td>
+      <td>
+        <select onchange="updateLevel('${q.id}', this.value)" style="font-weight:bold; color:${lvlObj.color}; padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; background: #fff; cursor: pointer;">
+          <option value="red" ${q.level === 'red' ? 'selected' : ''}>[ แดง - วิกฤต ]</option>
+          <option value="pink" ${q.level === 'pink' ? 'selected' : ''}>[ ชมพู - ฉุกเฉินเร่งด่วน ]</option>
+          <option value="yellow" ${q.level === 'yellow' ? 'selected' : ''}>[ เหลือง - เร่งด่วน ]</option>
+          <option value="green" ${q.level === 'green' ? 'selected' : ''}>[ เขียว - ไม่รุนแรง ]</option>
+          <option value="white" ${q.level === 'white' ? 'selected' : ''}>[ ขาว - ทั่วไป ]</option>
+        </select>
+      </td>
+      <td>
+        <select onchange="updateStatus('${q.id}', this.value)" style="padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; background: #fff; cursor: pointer;">
+          ${SERVICE_STATUSES.map(s => `<option ${q.serviceStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
+        </select>
+      </td>
+      <td>${q.calledCount ? `เรียกแล้ว (${q.calledCount})` : 'ยังไม่เรียก'}</td>
+      <td>${waitMin} นาที</td>
+      <td>
+        <button class="ok" onclick="callQueue('${q.id}', 'ห้องฉุกเฉิน')">เรียก</button>
+        <button class="finish" onclick="finishQueue('${q.id}')">เสร็จ</button>
+        <button class="delete" onclick="deleteQueue('${q.id}')">ลบ</button>
+      </td>
+    </tr>`;
             <td>${waitMin} นาที</td>
             <td>${q.calledCount ? `เรียกแล้ว (${q.calledCount})` : 'ยังไม่เรียก'}</td>
             <td>
