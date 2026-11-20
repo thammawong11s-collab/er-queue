@@ -53,6 +53,14 @@ io.on('connection', (socket) => {
     }
   });
 
+    socket.on('updateLevel', (data) => {
+    const q = state.queues.find(item => item.id === data.id);
+    if (q) {
+      q.level = data.newLevel;
+      io.emit('sync-state', state);
+    }
+  });
+
   socket.on('finish-queue', (data) => {
     state.queues = state.queues.filter(q => q.id !== data.id);
     if (state.calling && state.calling.id === data.id) {
