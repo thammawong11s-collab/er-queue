@@ -310,10 +310,22 @@
             <td><b>${maskName(q.name)}</b><br><small>HN: ${q.hn || '-'}</small></td>
             <td>${lvlObj.name}</td>
             <td>
-              <select onchange="updateStatus('${q.id}', this.value)">
-                ${SERVICE_STATUSES.map(s => `<option ${q.serviceStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
-              </select>
-            </td>
+                <td>
+      <!-- เพิ่มช่องเลือกเปลี่ยนระดับตรงนี้ -->
+      <select onchange="updateLevel('${q.id}', this.value)" style="margin-bottom:4px; font-weight:bold; color:${lvlObj.color};">
+        <option value="red" ${q.level === 'red' ? 'selected' : ''}>🔴 แดง</option>
+        <option value="pink" ${q.level === 'pink' ? 'selected' : ''}>🩷 ชมพู</option>
+        <option value="yellow" ${q.level === 'yellow' ? 'selected' : ''}>🟡 เหลือง</option>
+        <option value="green" ${q.level === 'green' ? 'selected' : ''}>🟢 เขียว</option>
+        <option value="white" ${q.level === 'white' ? 'selected' : ''}>⚪ ขาว</option>
+      </select>
+      <br>
+      <!-- ช่องเปลี่ยนสถานะเดิมที่มีอยู่แล้ว -->
+      <select onchange="updateStatus('${q.id}', this.value)">
+        ${SERVICE_STATUSES.map(s => `<option ${q.serviceStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
+      </select>
+    </td>
+              
             <td>${waitMin} นาที</td>
             <td>${q.calledCount ? `เรียกแล้ว (${q.calledCount})` : 'ยังไม่เรียก'}</td>
             <td>
@@ -325,6 +337,12 @@
         `;
       }).join('');
     }
+
+    function updateLevel(id, newLevel) {
+  if (typeof socket !== 'undefined') {
+    socket.emit('updateLevel', { id, newLevel });
+  }
+}
 
     setInterval(() => {
       const now = new Date();
