@@ -308,20 +308,18 @@
           <tr>
             <td><span class="tag" style="background:${lvlObj.color}; color:${lvlObj.text}">${q.code}</span></td>
             <td><b>${maskName(q.name)}</b><br><small>HN: ${q.hn || '-'}</small></td>
-            <td>${lvlObj.name}</td>
-            <td>
-                <td>
-      <!-- เพิ่มช่องเลือกเปลี่ยนระดับตรงนี้ -->
-      <select onchange="updateLevel('${q.id}', this.value)" style="margin-bottom:4px; font-weight:bold; color:${lvlObj.color}; padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; background: #fff; cursor: pointer;">
-  <option value="red" ${q.level === 'red' ? 'selected' : ''}>[ แดง - วิกฤต ]</option>
-  <option value="pink" ${q.level === 'pink' ? 'selected' : ''}>[ ชมพู - ฉุกเฉินเร่งด่วน ]</option>
-  <option value="yellow" ${q.level === 'yellow' ? 'selected' : ''}>[ เหลือง - เร่งด่วน ]</option>
-  <option value="green" ${q.level === 'green' ? 'selected' : ''}>[ เขียว - ไม่รุนแรง ]</option>
-  <option value="white" ${q.level === 'white' ? 'selected' : ''}>[ ขาว - ทั่วไป ]</option>
-</select>
-      <br>
-      <!-- ช่องเปลี่ยนสถานะเดิมที่มีอยู่แล้ว -->
-      <select onchange="updateStatus('${q.id}', this.value)">
+                <td>${lvlObj.name}</td>
+    <td>
+      <select onchange="updateLevel('${q.id}', this.value)" style="font-weight:bold; color:${lvlObj.color}; padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; background: #fff; cursor: pointer;">
+        <option value="red" ${q.level === 'red' ? 'selected' : ''}>[ แดง - วิกฤต ]</option>
+        <option value="pink" ${q.level === 'pink' ? 'selected' : ''}>[ ชมพู - ฉุกเฉินเร่งด่วน ]</option>
+        <option value="yellow" ${q.level === 'yellow' ? 'selected' : ''}>[ เหลือง - เร่งด่วน ]</option>
+        <option value="green" ${q.level === 'green' ? 'selected' : ''}>[ เขียว - ไม่รุนแรง ]</option>
+        <option value="white" ${q.level === 'white' ? 'selected' : ''}>[ ขาว - ทั่วไป ]</option>
+      </select>
+    </td>
+    <td>
+      <select onchange="updateStatus('${q.id}', this.value)" style="padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; background: #fff; cursor: pointer;">
         ${SERVICE_STATUSES.map(s => `<option ${q.serviceStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
       </select>
     </td>
