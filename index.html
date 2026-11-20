@@ -361,6 +361,15 @@
     socket.emit('updateLevel', { id, newLevel });
   }
 }
+function switchView(view) {
+  if (view === 'staff') {
+    document.getElementById('board').classList.add('hidden');
+    document.getElementById('staff').classList.remove('hidden');
+  } else {
+    document.getElementById('staff').classList.add('hidden');
+    document.getElementById('board').classList.remove('hidden');
+  }
+}
 
     setInterval(() => {
       const now = new Date();
