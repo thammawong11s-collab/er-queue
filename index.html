@@ -77,7 +77,7 @@
     .q-card-no{font-size:22px;font-weight:800;color:#38bdf8}
     .q-card-name{font-size:14px;color:#e2e8f0;font-weight:600;text-align:right}
 
-    /* แถบข้อความวิ่งด้านล่าง (Marquee Ticker) */
+    /* แถบข้อความวิ่งด้านล่าง */
     .ticker-container {
       position: fixed;
       bottom: 0;
@@ -117,7 +117,6 @@
       <a class="switch-link" style="margin:0" onclick="switchView('public')">เปิดจอแสดงผล (Public Board) ↗</a>
     </div>
 
-    <!-- ตั้งค่าข้อความวิ่ง -->
     <div class="card-box">
       <h3 style="margin-bottom:10px;color:#94a3b8">ตั้งค่าข้อความวิ่งด้านล่างหน้าจอ</h3>
       <div style="display:flex;gap:10px">
@@ -126,12 +125,11 @@
       </div>
     </div>
 
-    <!-- ฟอร์มออกคิว -->
     <div class="card-box">
       <h3 style="margin-bottom:12px;color:#94a3b8">ลงทะเบียน / คัดกรองผู้ป่วยใหม่</h3>
       <div class="form-grid">
         <input type="text" id="queueNoInput" placeholder="เลขคิว (เช่น 481)">
-        <input type="text" id="fullNameInput" placeholder="ชื่อ - นามสกุล (เช่น ณัฐรัตน์ ยิ้ม***)">
+        <input type="text" id="fullNameInput" placeholder="ชื่อ - นามสกุล (เช่น ฉวี ออนงค์ทอง)">
         <select id="levelInput">
           <option value="red">แดง – วิกฤต</option>
           <option value="pink">ชมพู – ฉุกเฉินรุนแรง</option>
@@ -153,7 +151,6 @@
       </div>
     </div>
 
-    <!-- แถบควบคุมเรียกคิว -->
     <div class="card-box">
       <div class="action-bar">
         <select id="selectRoomTarget" style="width:220px">
@@ -166,14 +163,13 @@
       </div>
     </div>
 
-    <!-- ตารางรายชื่อผู้ป่วยในคิว & Re-triage -->
     <div class="card-box">
       <h3 style="margin-bottom:12px">ผู้ป่วยในคิวทั้งหมด (สามารถ Re-triage และเปลี่ยนสถานะได้ทันที)</h3>
       <table>
         <thead>
           <tr>
             <th>คิว</th>
-            <th>ชื่อ-สกุล</th>
+            <th>ชื่อ-สกุล (บันทึก / เซนเซอร์)</th>
             <th>ระดับความฉุกเฉิน (Re-triage)</th>
             <th>สถานะการรักษา</th>
             <th>เวลา</th>
@@ -236,7 +232,6 @@
     </div>
   </div>
 
-  <!-- แถบข้อความวิ่งด้านล่างสุด -->
   <div class="ticker-container">
     <div class="ticker-text" id="tickerDisplay">ผู้ป่วยอยู่ในภาวะเร่งด่วนและมีอันตรายใกล้ต่อชีวิต</div>
   </div>
@@ -286,19 +281,39 @@
       white: 'badge-white'
     };
 
+    // ฟังก์ชันช่วยแปลงชื่อ-นามสกุลให้เป็นแบบเซนเซอร์นามสกุลอัตโนมัติ (เช่น "ฉวี ออนงค์ทอง" -> "ฉวี ออนงค์***")
+    function maskFullName(nameStr) {
+      if (!nameStr) return '';
+      if (nameStr.includes('***')) return nameStr; // ถ้าใส่มาอยู่แล้วให้ใช้ตามนั้น
+      const parts = nameStr.trim().split(/\s+/);
+      if (parts.length > 1) {
+        let lastName = parts[parts.length - 1];
+        if (lastName.length > 3) {
+          parts[parts.length - 1] = lastName.substring(0, lastName.length - 3) + '***';
+        } else {
+          parts[parts.length - 1] = '***';
+        }
+        return parts.join(' ');
+      }
+      return nameStr;
+    }
+
     function addQueue() {
       const queueNo = document.getElementById('queueNoInput').value.trim();
-      const fullName = document.getElementById('fullNameInput').value.trim();
+      const rawName = document.getElementById('fullNameInput').value.trim();
       const level = document.getElementById('levelInput').value;
       const treatmentStatus = document.getElementById('treatmentStatusInput').value;
       const room = document.getElementById('roomInputVal').value.trim();
 
-      if (!queueNo || !fullName) {
+      if (!queueNo || !rawName) {
         alert('กรุณากรอกเลขคิวและชื่อ-สกุลให้ครบถ้วน');
         return;
       }
 
-      socket.emit('addQueue', { queueNo, fullName, level, treatmentStatus, room });
+      // ทำการเซนเซอร์นามสกุลให้อัตโนมัติสำหรับหน้าจอ Public
+      const maskedName = maskFullName(rawName);
+
+      socket.emit('addQueue', { queueNo, fullName: rawName, maskedName, level, treatmentStatus, room });
       
       document.getElementById('queueNoInput').value = '';
       document.getElementById('fullNameInput').value = '';
@@ -325,7 +340,6 @@
     }
 
     socket.on('syncState', (data) => {
-      // อัปเดตข้อความวิ่ง
       if (data.tickerText) {
         document.getElementById('tickerDisplay').textContent = data.tickerText;
         if (document.getElementById('tickerInput').value !== data.tickerText) {
@@ -343,6 +357,9 @@
       });
 
       data.queueList.forEach(p => {
+        // หากข้อมูลเก่าไม่มี maskedName ให้สร้างสำรองไว้
+        if (!p.maskedName) p.maskedName = maskFullName(p.fullName);
+
         if (p.status !== 'เสร็จสิ้น') {
           lists[p.level].push(p);
         }
@@ -350,7 +367,7 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><strong>${p.queueNo}</strong></td>
-          <td>${p.fullName}</td>
+          <td>${p.fullName} <br><small style="color:#38bdf8">แสดงบนจอ: ${p.maskedName}</small></td>
           <td>
             <select onchange="updatePatientAction(${p.id}, 'updateLevel', this.value)" style="padding:4px 8px;font-size:13px;font-weight:700">
               <option value="red" ${p.level === 'red' ? 'selected' : ''}>แดง - วิกฤต</option>
@@ -388,10 +405,12 @@
 
       if (data.currentCalling) {
         const c = data.currentCalling;
+        if (!c.maskedName) c.maskedName = maskFullName(c.fullName);
+
         callNo.textContent = c.queueNo;
         callNo.className = `calling-q ${levelBadgeClass[c.level]}`;
 
-        callName.textContent = c.fullName;
+        callName.textContent = c.maskedName; // แสดงชื่อที่เซนเซอร์แล้วบนจอใหญ่
         callLevel.className = levelBadgeClass[c.level];
         callLevel.textContent = levelMapName[c.level];
         callStatus.textContent = `สถานะ: ${c.treatmentStatus}`;
@@ -418,7 +437,7 @@
               <div class="q-card-no">${item.queueNo}</div>
               <small style="color:#38bdf8">${item.treatmentStatus}</small>
             </div>
-            <div class="q-card-name">${item.fullName}</div>
+            <div class="q-card-name">${item.maskedName}</div>
           `;
           container.appendChild(div);
         });
