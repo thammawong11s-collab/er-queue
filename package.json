@@ -1,7 +1,7 @@
 {
   "name": "er-queue",
   "version": "1.0.0",
-  "description": "ER Queue System",
+  "description": "Emergency Room Queue Management System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
