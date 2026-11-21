@@ -20,7 +20,7 @@
     .staff-header h2{font-size:22px;color:#38bdf8}
     
     .card-box{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px}
-    .form-grid{display:grid;grid-template-columns:1fr 2fr 1.3fr 1.6fr auto;gap:10px;align-items:center}
+    .form-grid{display:grid;grid-template-columns:1fr 2fr 1.3fr 1.6fr 1.5fr auto;gap:10px;align-items:center}
     input, select{width:100%;padding:10px 12px;background:#0f172a;border:1px solid #475569;color:#fff;border-radius:8px;font-size:14px}
     button{padding:8px 14px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;transition:opacity .2s}
     button:hover{opacity:0.9}
@@ -156,6 +156,10 @@
           <option value="นอนโรงพยาบาล">นอนโรงพยาบาล</option>
           <option value="ส่งต่อโรงพยาบาล">ส่งต่อโรงพยาบาล</option>
           <option value="จำหน่ายกลับบ้าน">จำหน่ายกลับบ้าน</option>
+        </select>
+        <select id="roomInputVal">
+          <option value="ห้องฉุกเฉิน">ห้องฉุกเฉิน</option>
+          <option value="ห้องฉีดยา-ทำแผล">ห้องฉีดยา-ทำแผล</option>
         </select>
         <button class="btn-primary" onclick="addQueue()">+ ออกคิว</button>
       </div>
@@ -363,7 +367,7 @@
       const rawName = document.getElementById('fullNameInput').value.trim();
       const level = document.getElementById('levelInput').value;
       const treatmentStatus = document.getElementById('treatmentStatusInput').value;
-      const room = "ห้องฉุกเฉิน";
+      const room = document.getElementById('roomInputVal').value;
 
       if (!queueNo || !rawName) {
         alert('กรุณากรอกเลขคิวและชื่อ-สกุลให้ครบถ้วน');
@@ -472,12 +476,10 @@
 
         window.lastCallingData = c;
 
-        // ตรวจสอบเมื่อมีการเปลี่ยนคิวเรียกใหม่ ให้เล่นเสียงและกระพริบเตือน
         if (window.lastCalledId !== c.id) {
           window.lastCalledId = c.id;
           playQueueSound(c.queueNo, c.room);
         } else {
-          // ถ้ากดปุ่มเรียกจากตารางซ้ำ ให้กระพริบเตือนทันทีเช่นกัน
           banner.classList.add('active-blink');
         }
 
