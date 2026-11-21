@@ -8,14 +8,14 @@
   <script src="/socket.io/socket.io.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;font-family:'Sarabun',sans-serif}
-    body{background:#0f172a;color:#e2e8f0;min-height:100vh}
+    body{background:#0f172a;color:#e2e8f0;min-height:100vh;display:flex;flex-direction:column}
     .hidden{display:none!important}
     
     .conn-badge{position:fixed;top:12px;right:16px;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;background:#dc2626;color:#fff;z-index:999}
     .conn-badge.connected{background:#16a34a}
 
     /* Triage Staff View */
-    #staffView{padding:20px;max-width:1400px;margin:0 auto}
+    #staffView{padding:20px;max-width:1400px;margin:0 auto;width:100%}
     .staff-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;background:#1e293b;padding:15px 20px;border-radius:12px;border:1px solid #334155}
     .staff-header h2{font-size:22px;color:#38bdf8}
     
@@ -47,7 +47,7 @@
     }
 
     /* Public Display Board View */
-    #publicView{padding:24px;min-height:100vh;display:flex;flex-direction:column;gap:20px}
+    #publicView{padding:24px 24px 60px 24px;min-height:100vh;display:flex;flex-direction:column;gap:20px;flex:1}
     .pub-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #334155;padding-bottom:15px}
     .pub-header h1{font-size:32px;color:#fff}
     .pub-hospital{color:#38bdf8;font-size:20px;font-weight:600;display:block}
@@ -77,6 +77,32 @@
     .q-card-no{font-size:22px;font-weight:800;color:#38bdf8}
     .q-card-name{font-size:14px;color:#e2e8f0;font-weight:600;text-align:right}
 
+    /* แถบข้อความวิ่งด้านล่าง (Marquee Ticker) */
+    .ticker-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: #b91c1c;
+      color: #fff;
+      padding: 10px 0;
+      font-size: 22px;
+      font-weight: 700;
+      overflow: hidden;
+      white-space: nowrap;
+      z-index: 998;
+      box-shadow: 0 -4px 10px rgba(0,0,0,0.3);
+    }
+    .ticker-text {
+      display: inline-block;
+      padding-left: 100%;
+      animation: ticker 25s linear infinite;
+    }
+    @keyframes ticker {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-100%, 0); }
+    }
+
     .switch-link{color:#38bdf8;cursor:pointer;text-decoration:underline;font-size:15px;margin-bottom:10px;display:inline-block}
   </style>
 </head>
@@ -89,6 +115,15 @@
     <div class="staff-header">
       <h2>🩺 แผงควบคุมเจ้าหน้าที่ (ER Triage) - โรงพยาบาลบางแพ</h2>
       <a class="switch-link" style="margin:0" onclick="switchView('public')">เปิดจอแสดงผล (Public Board) ↗</a>
+    </div>
+
+    <!-- ตั้งค่าข้อความวิ่ง -->
+    <div class="card-box">
+      <h3 style="margin-bottom:10px;color:#94a3b8">ตั้งค่าข้อความวิ่งด้านล่างหน้าจอ</h3>
+      <div style="display:flex;gap:10px">
+        <input type="text" id="tickerInput" value="ผู้ป่วยอยู่ในภาวะเร่งด่วนและมีอันตรายใกล้ต่อชีวิต" placeholder="พิมพ์ข้อความวิ่ง...">
+        <button class="btn-primary" onclick="updateTicker()">อัปเดตข้อความวิ่ง</button>
+      </div>
     </div>
 
     <!-- ฟอร์มออกคิว -->
@@ -201,6 +236,11 @@
     </div>
   </div>
 
+  <!-- แถบข้อความวิ่งด้านล่างสุด -->
+  <div class="ticker-container">
+    <div class="ticker-text" id="tickerDisplay">ผู้ป่วยอยู่ในภาวะเร่งด่วนและมีอันตรายใกล้ต่อชีวิต</div>
+  </div>
+
   <script>
     const socket = io();
     const connStatus = document.getElementById('connectionStatus');
@@ -273,6 +313,11 @@
       socket.emit('actionPatient', { id, action, value });
     }
 
+    function updateTicker() {
+      const text = document.getElementById('tickerInput').value.trim();
+      socket.emit('updateTicker', text);
+    }
+
     function resetAllData() {
       if (confirm('คุณต้องการล้างข้อมูลคิวทั้งหมดใช่หรือไม่?')) {
         socket.emit('resetAll');
@@ -280,6 +325,14 @@
     }
 
     socket.on('syncState', (data) => {
+      // อัปเดตข้อความวิ่ง
+      if (data.tickerText) {
+        document.getElementById('tickerDisplay').textContent = data.tickerText;
+        if (document.getElementById('tickerInput').value !== data.tickerText) {
+          document.getElementById('tickerInput').value = data.tickerText;
+        }
+      }
+
       const tbody = document.getElementById('staffTableBody');
       tbody.innerHTML = '';
 
