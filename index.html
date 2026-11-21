@@ -11,38 +11,36 @@
     body{background:#0f172a;color:#e2e8f0;min-height:100vh}
     .hidden{display:none!important}
     
-    /* Connection Status */
     .conn-badge{position:fixed;top:12px;right:16px;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;background:#dc2626;color:#fff;z-index:999}
     .conn-badge.connected{background:#16a34a}
 
     /* Triage Staff View */
-    #staffView{padding:20px;max-width:1300px;margin:0 auto}
+    #staffView{padding:20px;max-width:1400px;margin:0 auto}
     .staff-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;background:#1e293b;padding:15px 20px;border-radius:12px;border:1px solid #334155}
     .staff-header h2{font-size:22px;color:#38bdf8}
     
     .card-box{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px}
-    .form-row{display:grid;grid-template-columns:2fr 2fr 2fr 1.5fr auto;gap:12px;align-items:center}
-    input, select{width:100%;padding:10px 14px;background:#0f172a;border:1px solid #475569;color:#fff;border-radius:8px;font-size:15px}
-    button{padding:10px 20px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:15px;transition:opacity .2s}
+    .form-grid{display:grid;grid-template-columns:1fr 2fr 1.5fr 1.8fr 1.2fr auto;gap:10px;align-items:center}
+    input, select{width:100%;padding:10px 12px;background:#0f172a;border:1px solid #475569;color:#fff;border-radius:8px;font-size:14px}
+    button{padding:10px 16px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;transition:opacity .2s}
     button:hover{opacity:0.9}
     .btn-primary{background:#2563eb;color:#fff}
     .btn-success{background:#16a34a;color:#fff}
-    .btn-warning{background:#d97706;color:#fff}
     .btn-danger{background:#dc2626;color:#fff}
 
     .action-bar{display:flex;gap:15px;align-items:center;margin-top:15px;flex-wrap:wrap}
 
     /* Table */
     table{width:100%;border-collapse:collapse;margin-top:10px}
-    th, td{padding:12px 16px;text-align:left;border-bottom:1px solid #334155;font-size:15px}
+    th, td{padding:12px 14px;text-align:left;border-bottom:1px solid #334155;font-size:14px}
     th{color:#94a3b8;font-weight:600;background:#0f172a}
     
-    /* Level Badges */
-    .badge-red{background:#dc2626;color:#fff;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700;display:inline-block}
-    .badge-pink{background:#db2777;color:#fff;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700;display:inline-block}
-    .badge-yellow{background:#ca8a04;color:#fff;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700;display:inline-block}
-    .badge-green{background:#16a34a;color:#fff;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700;display:inline-block}
-    .badge-white{background:#f8fafc;color:#0f172a;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700;display:inline-block}
+    /* Level Badges & Select */
+    .badge-red{background:#dc2626;color:#fff;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;display:inline-block}
+    .badge-pink{background:#db2777;color:#fff;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;display:inline-block}
+    .badge-yellow{background:#ca8a04;color:#fff;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;display:inline-block}
+    .badge-green{background:#16a34a;color:#fff;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;display:inline-block}
+    .badge-white{background:#f8fafc;color:#0f172a;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;display:inline-block}
 
     /* Public Display Board View */
     #publicView{padding:24px;min-height:100vh;display:flex;flex-direction:column;gap:20px}
@@ -54,17 +52,17 @@
     .calling-banner{background:#1e293b;border:3px solid #475569;border-radius:16px;padding:24px 30px;display:flex;align-items:center;justify-content:space-between;min-height:160px}
     .calling-left{display:flex;align-items:center;gap:30px}
     .calling-q{font-size:72px;font-weight:800;background:#dc2626;color:#fff;padding:0 24px;border-radius:12px;line-height:1.2}
-    .calling-info h2{font-size:44px;color:#fff;font-weight:800;margin-bottom:4px}
-    .calling-info p{font-size:24px;color:#94a3b8}
-    .calling-room{font-size:42px;font-weight:800;color:#38bdf8}
+    .calling-info h2{font-size:40px;color:#fff;font-weight:800;margin-bottom:4px}
+    .calling-info p{font-size:20px;color:#94a3b8}
+    .calling-room{font-size:38px;font-weight:800;color:#38bdf8}
 
     .queues-grid{display:grid;grid-template-columns:repeat(5, 1fr);gap:16px;flex:1}
     .q-column{background:#1e293b;border-radius:12px;border:1px solid #334155;display:flex;flex-direction:column;overflow:hidden}
-    .q-col-header{padding:14px;text-align:center;font-weight:700;font-size:18px}
+    .q-col-header{padding:14px;text-align:center;font-weight:700;font-size:16px}
     .q-col-body{padding:12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;max-height:450px}
     .q-card-item{background:#0f172a;border:1px solid #334155;padding:12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center}
-    .q-card-no{font-size:24px;font-weight:800;color:#38bdf8}
-    .q-card-name{font-size:16px;color:#e2e8f0;font-weight:600}
+    .q-card-no{font-size:22px;font-weight:800;color:#38bdf8}
+    .q-card-name{font-size:14px;color:#e2e8f0;font-weight:600;text-align:right}
 
     .switch-link{color:#38bdf8;cursor:pointer;text-decoration:underline;font-size:15px;margin-bottom:10px;display:inline-block}
   </style>
@@ -80,23 +78,34 @@
       <a class="switch-link" style="margin:0" onclick="switchView('public')">เปิดจอแสดงผล (Public Board) ↗</a>
     </div>
 
+    <!-- ฟอร์มออกคิว -->
     <div class="card-box">
       <h3 style="margin-bottom:12px;color:#94a3b8">ลงทะเบียน / คัดกรองผู้ป่วยใหม่</h3>
-      <div class="form-row">
-        <input type="text" id="firstNameInput" placeholder="ชื่อจริง">
-        <input type="text" id="lastNameInput" placeholder="นามสกุล">
+      <div class="form-grid">
+        <input type="text" id="queueNoInput" placeholder="เลขคิว (เช่น 481)">
+        <input type="text" id="fullNameInput" placeholder="ชื่อ - นามสกุล (เช่น ณัฐรัตน์ ยิ้ม***)">
         <select id="levelInput">
-          <option value="red">แดง – วิกฤต (Resuscitation)</option>
-          <option value="pink">ชมพู – ฉุกเฉินรุนแรง (Emergency)</option>
-          <option value="yellow">เหลือง – ด่วน (Urgent)</option>
-          <option value="green">เขียว – ไม่รุนแรง (Standard)</option>
-          <option value="white">ขาว – ทั่วไป (Non-Urgent)</option>
+          <option value="red">🔴 แดง – วิกฤต</option>
+          <option value="pink">🩷 ชมพู – ฉุกเฉินรุนแรง</option>
+          <option value="yellow">🟡 เหลือง – ด่วน</option>
+          <option value="green">🟢 เขียว – ไม่รุนแรง</option>
+          <option value="white">⚪ ขาว – ทั่วไป</option>
         </select>
-        <input type="text" id="roomInputVal" value="ห้องฉุกเฉิน" placeholder="ระบุห้องตรวจ">
+        <select id="treatmentStatusInput">
+          <option value="รอพบแพทย์">รอพบแพทย์</option>
+          <option value="กำลังตรวจรักษา">กำลังตรวจรักษา</option>
+          <option value="นอนพักสังเกตอาการ">นอนพักสังเกตอาการ</option>
+          <option value="รอผลเลือด/X-ray">รอผลเลือด/X-ray</option>
+          <option value="ทำแผล / ฉีดยา">ทำแผล / ฉีดยา</option>
+          <option value="ส่งต่อโรงพยาบาล">ส่งต่อโรงพยาบาล</option>
+          <option value="จำหน่ายกลับบ้าน">จำหน่ายกลับบ้าน</option>
+        </select>
+        <input type="text" id="roomInputVal" value="ห้องฉุกเฉิน" placeholder="ห้องตรวจ">
         <button class="btn-primary" onclick="addQueue()">+ ออกคิว</button>
       </div>
     </div>
 
+    <!-- แถบควบคุมเรียกคิว -->
     <div class="card-box">
       <div class="action-bar">
         <select id="selectRoomTarget" style="width:220px">
@@ -104,21 +113,22 @@
           <option value="ห้องอุบัติเหตุ">ห้องอุบัติเหตุ</option>
           <option value="ห้องทำแผล">ห้องทำแผล</option>
         </select>
-        <button class="btn-primary" style="flex:1" onclick="callNext()">📢 เรียกคิวถัดไป (ตามความเร่งด่วน)</button>
+        <button class="btn-primary" style="flex:1" onclick="callNext()">📢 เรียกคิวถัดไป (ตามความเร่งด่วนทางการแพทย์)</button>
         <button class="btn-danger" onclick="resetAllData()">ล้างข้อมูลทั้งหมด</button>
       </div>
     </div>
 
+    <!-- ตารางรายชื่อผู้ป่วยในคิว & Re-triage -->
     <div class="card-box">
-      <h3 style="margin-bottom:12px">ผู้ป่วยในคิวทั้งหมด</h3>
+      <h3 style="margin-bottom:12px">ผู้ป่วยในคิวทั้งหมด (สามารถ Re-triage และเปลี่ยนสถานะได้ทันที)</h3>
       <table>
         <thead>
           <tr>
             <th>คิว</th>
-            <th>ชื่อ-สกุล (บนจอแสดงผล)</th>
-            <th>ระดับความฉุกเฉิน</th>
-            <th>เวลาลงทะเบียน</th>
-            <th>สถานะ</th>
+            <th>ชื่อ-สกุล</th>
+            <th>ระดับความฉุกเฉิน (Re-triage)</th>
+            <th>สถานะการรักษา</th>
+            <th>เวลา</th>
             <th>จัดการ</th>
           </tr>
         </thead>
@@ -142,7 +152,6 @@
 
     <a class="switch-link" onclick="switchView('staff')">← กลับไปหน้าแผงควบคุมเจ้าหน้าที่</a>
 
-    <!-- กำลังเรียก -->
     <div class="calling-banner" id="callingBanner">
       <div class="calling-left">
         <div class="calling-q" id="pubCallNo">-</div>
@@ -155,29 +164,23 @@
       <div class="calling-room" id="pubCallRoom">-</div>
     </div>
 
-    <!-- 5 คอลัมน์แยกตามสีความฉุกเฉิน -->
     <div class="queues-grid">
-      <!-- แดง -->
       <div class="q-column">
         <div class="q-col-header" style="background:#dc2626;color:#fff">แดง - วิกฤต (<span id="count-red">0</span>)</div>
         <div class="q-col-body" id="list-red"></div>
       </div>
-      <!-- ชมพู -->
       <div class="q-column">
         <div class="q-col-header" style="background:#db2777;color:#fff">ชมพู - ฉุกเฉินรุนแรง (<span id="count-pink">0</span>)</div>
         <div class="q-col-body" id="list-pink"></div>
       </div>
-      <!-- เหลือง -->
       <div class="q-column">
         <div class="q-col-header" style="background:#ca8a04;color:#fff">เหลือง - ด่วน (<span id="count-yellow">0</span>)</div>
         <div class="q-col-body" id="list-yellow"></div>
       </div>
-      <!-- เขียว -->
       <div class="q-column">
         <div class="q-col-header" style="background:#16a34a;color:#fff">เขียว - ไม่รุนแรง (<span id="count-green">0</span>)</div>
         <div class="q-col-body" id="list-green"></div>
       </div>
-      <!-- ขาว -->
       <div class="q-column">
         <div class="q-col-header" style="background:#f8fafc;color:#0f172a">ขาว - ทั่วไป (<span id="count-white">0</span>)</div>
         <div class="q-col-body" id="list-white"></div>
@@ -209,7 +212,6 @@
       }
     }
 
-    // นาฬิกา Realtime
     setInterval(() => {
       const now = new Date();
       document.getElementById('clock').textContent = now.toLocaleTimeString('th-TH');
@@ -231,22 +233,22 @@
       white: 'badge-white'
     };
 
-    // ส่งข้อมูลออกคิว
     function addQueue() {
-      const firstName = document.getElementById('firstNameInput').value.trim();
-      const lastName = document.getElementById('lastNameInput').value.trim();
+      const queueNo = document.getElementById('queueNoInput').value.trim();
+      const fullName = document.getElementById('fullNameInput').value.trim();
       const level = document.getElementById('levelInput').value;
+      const treatmentStatus = document.getElementById('treatmentStatusInput').value;
       const room = document.getElementById('roomInputVal').value.trim();
 
-      if (!firstName || !lastName) {
-        alert('กรุณากรอกชื่อและนามสกุลผู้ป่วยให้ครบถ้วน');
+      if (!queueNo || !fullName) {
+        alert('กรุณากรอกเลขคิวและชื่อ-สกุลให้ครบถ้วน');
         return;
       }
 
-      socket.emit('addQueue', { firstName, lastName, level, levelName: levelMapName[level], room });
+      socket.emit('addQueue', { queueNo, fullName, level, treatmentStatus, room });
       
-      document.getElementById('firstNameInput').value = '';
-      document.getElementById('lastNameInput').value = '';
+      document.getElementById('queueNoInput').value = '';
+      document.getElementById('fullNameInput').value = '';
     }
 
     function callNext() {
@@ -254,8 +256,8 @@
       socket.emit('callNext', room);
     }
 
-    function actionPatient(id, action) {
-      socket.emit('actionPatient', { id, action });
+    function updatePatientAction(id, action, value) {
+      socket.emit('actionPatient', { id, action, value });
     }
 
     function resetAllData() {
@@ -264,13 +266,10 @@
       }
     }
 
-    // รับข้อมูล Sync จาก Server
     socket.on('syncState', (data) => {
-      // 1. อัปเดตตารางฝั่ง Staff
       const tbody = document.getElementById('staffTableBody');
       tbody.innerHTML = '';
 
-      // แยกกลุ่มแสดงผลตามสีคอลัมน์ฝั่ง Public
       const lists = { red: [], pink: [], yellow: [], green: [], white: [] };
       ['red', 'pink', 'yellow', 'green', 'white'].forEach(k => {
         document.getElementById(`list-${k}`).innerHTML = '';
@@ -282,23 +281,39 @@
           lists[p.level].push(p);
         }
 
-        // สร้างแถวตาราง Staff
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><strong>${p.queueNo}</strong></td>
-          <td>${p.firstName} ${p.lastName}<br><small style="color:#94a3b8">บนจอ: ${p.maskedName}</small></td>
-          <td><span class="${levelBadgeClass[p.level]}">${levelMapName[p.level]}</span></td>
-          <td>${p.timeIn}</td>
-          <td><span style="color:${p.status === 'กำลังเรียก' ? '#38bdf8' : '#e2e8f0'}">${p.status} → ${p.room}</span></td>
+          <td>${p.fullName}</td>
           <td>
-            <button class="btn-primary" style="padding:6px 12px;font-size:13px" onclick="actionPatient(${p.id}, 'callAgain')">เรียกซ้ำ</button>
-            <button class="btn-success" style="padding:6px 12px;font-size:13px" onclick="actionPatient(${p.id}, 'finish')">เสร็จ</button>
+            <select onchange="updatePatientAction(${p.id}, 'updateLevel', this.value)" style="padding:4px 8px;font-size:13px;font-weight:700">
+              <option value="red" ${p.level === 'red' ? 'selected' : ''}>🔴 แดง - วิกฤต</option>
+              <option value="pink" ${p.level === 'pink' ? 'selected' : ''}>🩷 ชมพู - ฉุกเฉินรุนแรง</option>
+              <option value="yellow" ${p.level === 'yellow' ? 'selected' : ''}>🟡 เหลือง - ด่วน</option>
+              <option value="green" ${p.level === 'green' ? 'selected' : ''}>🟢 เขียว - ไม่รุนแรง</option>
+              <option value="white" ${p.level === 'white' ? 'selected' : ''}>⚪ ขาว - ทั่วไป</option>
+            </select>
+          </td>
+          <td>
+            <select onchange="updatePatientAction(${p.id}, 'updateTreatmentStatus', this.value)" style="padding:4px 8px;font-size:13px">
+              <option value="รอพบแพทย์" ${p.treatmentStatus === 'รอพบแพทย์' ? 'selected' : ''}>รอพบแพทย์</option>
+              <option value="กำลังตรวจรักษา" ${p.treatmentStatus === 'กำลังตรวจรักษา' ? 'selected' : ''}>กำลังตรวจรักษา</option>
+              <option value="นอนพักสังเกตอาการ" ${p.treatmentStatus === 'นอนพักสังเกตอาการ' ? 'selected' : ''}>นอนพักสังเกตอาการ</option>
+              <option value="รอผลเลือด/X-ray" ${p.treatmentStatus === 'รอผลเลือด/X-ray' ? 'selected' : ''}>รอผลเลือด/X-ray</option>
+              <option value="ทำแผล / ฉีดยา" ${p.treatmentStatus === 'ทำแผล / ฉีดยา' ? 'selected' : ''}>ทำแผล / ฉีดยา</option>
+              <option value="ส่งต่อโรงพยาบาล" ${p.treatmentStatus === 'ส่งต่อโรงพยาบาล' ? 'selected' : ''}>ส่งต่อโรงพยาบาล</option>
+              <option value="จำหน่ายกลับบ้าน" ${p.treatmentStatus === 'จำหน่ายกลับบ้าน' ? 'selected' : ''}>จำหน่ายกลับบ้าน</option>
+            </select>
+          </td>
+          <td>${p.timeIn}</td>
+          <td>
+            <button class="btn-primary" style="padding:5px 10px;font-size:12px" onclick="updatePatientAction(${p.id}, 'callAgain')">เรียกซ้ำ</button>
+            <button class="btn-success" style="padding:5px 10px;font-size:12px" onclick="updatePatientAction(${p.id}, 'finish')">เสร็จ</button>
           </td>
         `;
         tbody.appendChild(tr);
       });
 
-      // 2. อัปเดตแบนเนอร์กำลังเรียก
       const callNo = document.getElementById('pubCallNo');
       const callName = document.getElementById('pubCallName');
       const callLevel = document.getElementById('pubCallLevelBadge');
@@ -308,10 +323,10 @@
       if (data.currentCalling) {
         const c = data.currentCalling;
         callNo.textContent = c.queueNo;
-        callName.textContent = c.maskedName;
+        callName.textContent = c.fullName;
         callLevel.className = levelBadgeClass[c.level];
         callLevel.textContent = levelMapName[c.level];
-        callStatus.textContent = `สถานะ: กำลังเข้ารับบริการ`;
+        callStatus.textContent = `สถานะ: ${c.treatmentStatus}`;
         callRoom.textContent = `→ ${c.room}`;
       } else {
         callNo.textContent = '-';
@@ -322,7 +337,6 @@
         callRoom.textContent = '-';
       }
 
-      // 3. เติมข้อมูลลง 5 คอลัมน์หน้าจอ Public
       Object.keys(lists).forEach(lvl => {
         const container = document.getElementById(`list-${lvl}`);
         document.getElementById(`count-${lvl}`).textContent = lists[lvl].length;
@@ -331,8 +345,11 @@
           const div = document.createElement('div');
           div.className = 'q-card-item';
           div.innerHTML = `
-            <div class="q-card-no">${item.queueNo}</div>
-            <div class="q-card-name">${item.maskedName}</div>
+            <div>
+              <div class="q-card-no">${item.queueNo}</div>
+              <small style="color:#38bdf8">${item.treatmentStatus}</small>
+            </div>
+            <div class="q-card-name">${item.fullName}</div>
           `;
           container.appendChild(div);
         });
