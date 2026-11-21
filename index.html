@@ -35,15 +35,15 @@
     th, td{padding:12px 14px;text-align:left;border-bottom:1px solid #334155;font-size:14px}
     th{color:#94a3b8;font-weight:600;background:#0f172a}
     
-    /* Level Badges & Colors */
-    .badge-red, .bg-red{background:#dc2626;color:#fff}
-    .badge-pink, .bg-pink{background:#db2777;color:#fff}
-    .badge-yellow, .bg-yellow{background:#ca8a04;color:#fff}
-    .badge-green, .bg-green{background:#16a34a;color:#fff}
-    .badge-white, .bg-white{background:#f8fafc;color:#0f172a}
+    /* Level Badges & Dynamic Colors */
+    .badge-red { background:#dc2626; color:#fff; }
+    .badge-pink { background:#db2777; color:#fff; }
+    .badge-yellow { background:#ca8a04; color:#fff; }
+    .badge-green { background:#16a34a; color:#fff; }
+    .badge-white { background:#f8fafc; color:#0f172a; }
 
     .badge-red, .badge-pink, .badge-yellow, .badge-green, .badge-white {
-      padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;display:inline-block;
+      padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; display:inline-block;
     }
 
     /* Public Display Board View */
@@ -56,8 +56,15 @@
     .calling-banner{background:#1e293b;border:3px solid #475569;border-radius:16px;padding:24px 30px;display:flex;align-items:center;justify-content:space-between;min-height:160px}
     .calling-left{display:flex;align-items:center;gap:30px}
     
-    /* กล่องเลขคิวใหญ่ (ปรับเปลี่ยนสีตามระดับความฉุกเฉิน) */
-    .calling-q{font-size:72px;font-weight:800;padding:0 24px;border-radius:12px;line-height:1.2;transition:background 0.3s, color 0.3s}
+    /* กล่องเลขคิวใหญ่ */
+    .calling-q {
+      font-size: 72px;
+      font-weight: 800;
+      padding: 0 24px;
+      border-radius: 12px;
+      line-height: 1.2;
+      transition: background 0.3s, color 0.3s;
+    }
     
     .calling-info h2{font-size:40px;color:#fff;font-weight:800;margin-bottom:4px}
     .calling-info p{font-size:20px;color:#94a3b8}
@@ -92,11 +99,11 @@
         <input type="text" id="queueNoInput" placeholder="เลขคิว (เช่น 481)">
         <input type="text" id="fullNameInput" placeholder="ชื่อ - นามสกุล (เช่น ณัฐรัตน์ ยิ้ม***)">
         <select id="levelInput">
-          <option value="red">🔴 แดง – วิกฤต</option>
-          <option value="pink">🩷 ชมพู – ฉุกเฉินรุนแรง</option>
-          <option value="yellow">🟡 เหลือง – ด่วน</option>
-          <option value="green">🟢 เขียว – ไม่รุนแรง</option>
-          <option value="white">⚪ ขาว – ทั่วไป</option>
+          <option value="red">แดง – วิกฤต</option>
+          <option value="pink">ชมพู – ฉุกเฉินรุนแรง</option>
+          <option value="yellow">เหลือง – ด่วน</option>
+          <option value="green">เขียว – ไม่รุนแรง</option>
+          <option value="white">ขาว – ทั่วไป</option>
         </select>
         <select id="treatmentStatusInput">
           <option value="รอพบแพทย์">รอพบแพทย์</option>
@@ -161,8 +168,8 @@
 
     <div class="calling-banner" id="callingBanner">
       <div class="calling-left">
-        <!-- กล่องเลขคิวเปลี่ยนสีตามระดับความฉุกเฉิน -->
-        <div class="calling-q bg-red" id="pubCallNo">-</div>
+        <!-- กล่องเลขคิวใหญ่ (ใช้คลาส badge เพื่อดึงสีพื้นหลังและสีตัวอักษรมาตรงกันเป๊ะ) -->
+        <div class="calling-q badge-red" id="pubCallNo">-</div>
         <div class="calling-info">
           <p id="pubCallLevelBadge" class="badge-red" style="margin-bottom:6px">รอระบุ</p>
           <h2 id="pubCallName">รอเรียกคิวรับบริการ...</h2>
@@ -241,14 +248,6 @@
       white: 'badge-white'
     };
 
-    const levelBgClass = {
-      red: 'bg-red',
-      pink: 'bg-pink',
-      yellow: 'bg-yellow',
-      green: 'bg-green',
-      white: 'bg-white'
-    };
-
     function addQueue() {
       const queueNo = document.getElementById('queueNoInput').value.trim();
       const fullName = document.getElementById('fullNameInput').value.trim();
@@ -303,11 +302,11 @@
           <td>${p.fullName}</td>
           <td>
             <select onchange="updatePatientAction(${p.id}, 'updateLevel', this.value)" style="padding:4px 8px;font-size:13px;font-weight:700">
-              <option value="red" ${p.level === 'red' ? 'selected' : ''}>🔴 แดง - วิกฤต</option>
-              <option value="pink" ${p.level === 'pink' ? 'selected' : ''}>🩷 ชมพู - ฉุกเฉินรุนแรง</option>
-              <option value="yellow" ${p.level === 'yellow' ? 'selected' : ''}>🟡 เหลือง - ด่วน</option>
-              <option value="green" ${p.level === 'green' ? 'selected' : ''}>🟢 เขียว - ไม่รุนแรง</option>
-              <option value="white" ${p.level === 'white' ? 'selected' : ''}>⚪ ขาว - ทั่วไป</option>
+              <option value="red" ${p.level === 'red' ? 'selected' : ''}>แดง - วิกฤต</option>
+              <option value="pink" ${p.level === 'pink' ? 'selected' : ''}>ชมพู - ฉุกเฉินรุนแรง</option>
+              <option value="yellow" ${p.level === 'yellow' ? 'selected' : ''}>เหลือง - ด่วน</option>
+              <option value="green" ${p.level === 'green' ? 'selected' : ''}>เขียว - ไม่รุนแรง</option>
+              <option value="white" ${p.level === 'white' ? 'selected' : ''}>ขาว - ทั่วไป</option>
             </select>
           </td>
           <td>
@@ -340,8 +339,8 @@
         const c = data.currentCalling;
         callNo.textContent = c.queueNo;
         
-        // ล้างคลาสสีเดิมทั้งหมด แล้วใส่สีใหม่ตามระดับความฉุกเฉิน
-        callNo.className = `calling-q ${levelBgClass[c.level]}`;
+        // กำหนดสีกล่องเลขคิวตามระดับความฉุกเฉินอัตโนมัติ
+        callNo.className = `calling-q ${levelBadgeClass[c.level]}`;
 
         callName.textContent = c.fullName;
         callLevel.className = levelBadgeClass[c.level];
@@ -350,7 +349,7 @@
         callRoom.textContent = `→ ${c.room}`;
       } else {
         callNo.textContent = '-';
-        callNo.className = 'calling-q bg-red';
+        callNo.className = 'calling-q badge-red';
         callName.textContent = 'รอเรียกคิวรับบริการ...';
         callLevel.className = 'badge-red';
         callLevel.textContent = '-';
