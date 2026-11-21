@@ -35,7 +35,7 @@
     th, td{padding:12px 14px;text-align:left;border-bottom:1px solid #334155;font-size:14px}
     th{color:#94a3b8;font-weight:600;background:#0f172a}
     
-    /* Level Badges & Dynamic Colors */
+    /* Level Badges */
     .badge-red { background:#dc2626; color:#fff; }
     .badge-pink { background:#db2777; color:#fff; }
     .badge-yellow { background:#ca8a04; color:#fff; }
@@ -56,7 +56,6 @@
     .calling-banner{background:#1e293b;border:3px solid #475569;border-radius:16px;padding:24px 30px;display:flex;align-items:center;justify-content:space-between;min-height:160px}
     .calling-left{display:flex;align-items:center;gap:30px}
     
-    /* กล่องเลขคิวใหญ่ */
     .calling-q {
       font-size: 72px;
       font-weight: 800;
@@ -168,7 +167,6 @@
 
     <div class="calling-banner" id="callingBanner">
       <div class="calling-left">
-        <!-- กล่องเลขคิวใหญ่ (ใช้คลาส badge เพื่อดึงสีพื้นหลังและสีตัวอักษรมาตรงกันเป๊ะ) -->
         <div class="calling-q badge-red" id="pubCallNo">-</div>
         <div class="calling-info">
           <p id="pubCallLevelBadge" class="badge-red" style="margin-bottom:6px">รอระบุ</p>
@@ -322,7 +320,7 @@
           </td>
           <td>${p.timeIn}</td>
           <td>
-            <button class="btn-primary" style="padding:5px 10px;font-size:12px" onclick="updatePatientAction(${p.id}, 'callAgain')">เรียกซ้ำ</button>
+            <button class="btn-primary" style="padding:5px 10px;font-size:12px" onclick="updatePatientAction(${p.id}, 'callAgain')">เรียก</button>
             <button class="btn-success" style="padding:5px 10px;font-size:12px" onclick="updatePatientAction(${p.id}, 'finish')">เสร็จ</button>
           </td>
         `;
@@ -338,8 +336,6 @@
       if (data.currentCalling) {
         const c = data.currentCalling;
         callNo.textContent = c.queueNo;
-        
-        // กำหนดสีกล่องเลขคิวตามระดับความฉุกเฉินอัตโนมัติ
         callNo.className = `calling-q ${levelBadgeClass[c.level]}`;
 
         callName.textContent = c.fullName;
