@@ -20,7 +20,7 @@
     .staff-header h2{font-size:22px;color:#38bdf8}
     
     .card-box{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px}
-    .form-grid{display:grid;grid-template-columns:1fr 2fr 1.5fr 1.8fr 1.2fr auto;gap:10px;align-items:center}
+    .form-grid{display:grid;grid-template-columns:1fr 2fr 1.3fr 1.6fr auto;gap:10px;align-items:center}
     input, select{width:100%;padding:10px 12px;background:#0f172a;border:1px solid #475569;color:#fff;border-radius:8px;font-size:14px}
     button{padding:8px 14px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;transition:opacity .2s}
     button:hover{opacity:0.9}
@@ -53,7 +53,18 @@
     .pub-hospital{color:#38bdf8;font-size:20px;font-weight:600;display:block}
     #clock{font-size:32px;font-weight:800}
 
-    .calling-banner{background:#1e293b;border:3px solid #475569;border-radius:16px;padding:24px 30px;display:flex;align-items:center;justify-content:space-between;min-height:160px}
+    .calling-banner{background:#1e293b;border:3px solid #475569;border-radius:16px;padding:24px 30px;display:flex;align-items:center;justify-content:space-between;min-height:160px;transition:all 0.2s ease-in-out}
+    
+    /* เอฟเฟกต์กระพริบเตือนสีเหลือง/แดงเด่นชัด */
+    @keyframes pulseBanner {
+      0% { border-color: #ef4444; box-shadow: 0 0 0px rgba(239, 68, 68, 0); background-color: #1e293b; }
+      50% { border-color: #facc15; box-shadow: 0 0 40px rgba(250, 204, 21, 0.9); background-color: #3b0764; }
+      100% { border-color: #ef4444; box-shadow: 0 0 0px rgba(239, 68, 68, 0); background-color: #1e293b; }
+    }
+    .calling-banner.active-blink {
+      animation: pulseBanner 0.8s ease-in-out infinite;
+    }
+
     .calling-left{display:flex;align-items:center;gap:30px}
     
     .calling-q {
@@ -62,7 +73,6 @@
       padding: 0 24px;
       border-radius: 12px;
       line-height: 1.2;
-      transition: background 0.3s, color 0.3s;
     }
     
     .calling-info h2{font-size:40px;color:#fff;font-weight:800;margin-bottom:4px}
@@ -147,7 +157,6 @@
           <option value="ส่งต่อโรงพยาบาล">ส่งต่อโรงพยาบาล</option>
           <option value="จำหน่ายกลับบ้าน">จำหน่ายกลับบ้าน</option>
         </select>
-        <input type="text" id="roomInputVal" value="ห้องฉุกเฉิน" placeholder="ห้องตรวจ">
         <button class="btn-primary" onclick="addQueue()">+ ออกคิว</button>
       </div>
     </div>
@@ -156,8 +165,7 @@
       <div class="action-bar">
         <select id="selectRoomTarget" style="width:220px">
           <option value="ห้องฉุกเฉิน">ห้องฉุกเฉิน</option>
-          <option value="ห้องอุบัติเหตุ">ห้องอุบัติเหตุ</option>
-          <option value="ห้องทำแผล">ห้องทำแผล</option>
+          <option value="ห้องฉีดยา-ทำแผล">ห้องฉีดยา-ทำแผล</option>
         </select>
         <button class="btn-primary" style="flex:1" onclick="callNext()">📢 เรียกคิวถัดไป (ตามความเร่งด่วนทางการแพทย์)</button>
         <button class="btn-success" style="background:#ca8a04;color:#fff" onclick="callAgainSound()">🔄 เรียกซ้ำ (เสียงพูด)</button>
@@ -283,8 +291,11 @@
       white: 'badge-white'
     };
 
-    // ฟังก์ชันเล่นเสียงประกาศตามเลขคิวและห้องตรวจ
+    // ฟังก์ชันเล่นเสียงประกาศตามเลขคิวและห้องตรวจ พร้อมทริกเกอร์เปิดเอฟเฟกต์กระพริบเด่นชัด
     function playQueueSound(queueNoStr, roomName) {
+      const banner = document.getElementById('callingBanner');
+      banner.classList.add('active-blink'); // เริ่มกระพริบเตือนทันที
+
       const audioFiles = ['audio/intro.mp3']; // "ขอเชิญหมายเลข"
       
       for (let char of queueNoStr) {
@@ -322,7 +333,7 @@
       playNext();
     }
 
-    // ฟังก์ชันสำหรับกดปุ่มเรียกซ้ำ (เล่นเสียงประกาศเดิมซ้ำอีกรอบ)
+    // ฟังก์ชันสำหรับกดปุ่มเรียกซ้ำ (เล่นเสียงประกาศเดิมซ้ำอีกรอบ พร้อมกระพริบย้ำ)
     function callAgainSound() {
       if (window.lastCallingData) {
         playQueueSound(window.lastCallingData.queueNo, window.lastCallingData.room);
@@ -352,7 +363,7 @@
       const rawName = document.getElementById('fullNameInput').value.trim();
       const level = document.getElementById('levelInput').value;
       const treatmentStatus = document.getElementById('treatmentStatusInput').value;
-      const room = document.getElementById('roomInputVal').value.trim();
+      const room = "ห้องฉุกเฉิน";
 
       if (!queueNo || !rawName) {
         alert('กรุณากรอกเลขคิวและชื่อ-สกุลให้ครบถ้วน');
@@ -453,18 +464,21 @@
       const callLevel = document.getElementById('pubCallLevelBadge');
       const callStatus = document.getElementById('pubCallStatus');
       const callRoom = document.getElementById('pubCallRoom');
+      const banner = document.getElementById('callingBanner');
 
       if (data.currentCalling) {
         const c = data.currentCalling;
         if (!c.maskedName) c.maskedName = maskFullName(c.fullName);
 
-        // เก็บข้อมูลไว้สำหรับปุ่มเรียกซ้ำ
         window.lastCallingData = c;
 
-        // เล่นเสียงประกาศเมื่อมีการเรียกคิวใหม่
+        // ตรวจสอบเมื่อมีการเปลี่ยนคิวเรียกใหม่ ให้เล่นเสียงและกระพริบเตือน
         if (window.lastCalledId !== c.id) {
           window.lastCalledId = c.id;
           playQueueSound(c.queueNo, c.room);
+        } else {
+          // ถ้ากดปุ่มเรียกจากตารางซ้ำ ให้กระพริบเตือนทันทีเช่นกัน
+          banner.classList.add('active-blink');
         }
 
         callNo.textContent = c.queueNo;
@@ -476,6 +490,7 @@
         callStatus.textContent = `สถานะ: ${c.treatmentStatus}`;
         callRoom.textContent = `→ ${c.room}`;
       } else {
+        banner.classList.remove('active-blink');
         callNo.textContent = '-';
         callNo.className = 'calling-q badge-red';
         callName.textContent = 'รอเรียกคิวรับบริการ...';
