@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบเรียกคิวห้องฉุกเฉิน โรงพยาบาลบางแพ</title>
+  <title>ระบบเรียกคิวห้องฉุกเฉิน โรงพยาบาลบางบัวทอง</title>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;800&display=swap" rel="stylesheet">
   <script src="/socket.io/socket.io.js"></script>
   <style>
@@ -12,7 +12,7 @@
     .hidden{display:none!important}
     #connectionStatus{position:fixed;top:10px;right:10px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;z-index:999;background:#dc2626;color:#fff}
     #connectionStatus.connected{background:#16a34a}
-    #board{padding:16px;min-height:100vh;display:flex;flex-direction:column;gap:14px}
+    .board{padding:16px;min-height:100vh;display:flex;flex-direction:column;gap:14px}
     .top{display:flex;justify-content:space-between;align-items:center}
     .top h1{font-size:32px}
     .hospital-title{color:#38bdf8;font-weight:600;font-size:22px;display:block;margin-bottom:2px}
@@ -24,370 +24,124 @@
     #nowCalling .info{font-size:36px;font-weight:600}
     #nowCalling .room{font-size:42px;font-weight:800;margin-left:auto}
     #nowCalling .q{font-size:64px;font-weight:800;padding:2px 22px;border-radius:12px;border:1px solid #0003}
-    .lanes{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;flex:1}
-    .lane{background:#1e293b;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
-    .lane h2{padding:8px;font-size:20px;text-align:center;border-radius:6px;color:#000}
-    .lane ul{list-style:none;display:flex;flex-direction:column;gap:6px}
-    .lane li{background:#0f172a;padding:8px 10px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;font-size:18px}
-    .lane li.called{outline:2px solid #facc15}
-    .qb{padding:2px 8px;border-radius:6px;font-weight:700}
-    .wait{font-size:14px;color:#94a3b8}
-    .status-badge{font-size:12px;padding:2px 6px;border-radius:4px;background:#334155;color:#f8fafc;margin-top:2px;display:inline-block}
-    #soundHint{position:absolute;right:16px;bottom:16px;background:#facc15;color:#000;padding:8px 14px;cursor:pointer;z-index:10;border-radius:6px;font-weight:700}
-    #staff{background:#f1f5f9;color:#0f172a;padding:16px;min-height:100vh}
-    #staff h2{margin-bottom:12px}
-    .card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0002}
-    .card h3{margin-bottom:10px}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    input,select,button{font-family:inherit;font-size:14px;padding:8px 12px;border:1px solid #cbd5e1;border-radius:6px}
-    button{cursor:pointer}
-    button.danger{background:#dc2626;color:#fff;border:none;font-weight:600}
-    button.ok{background:#16a34a;color:#fff;border:none;font-weight:600}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left}
-    td small{color:#64748b}
-    .tag{padding:2px 10px;font-weight:700;font-size:14px;border:1px solid #0003;white-space:nowrap;border-radius:4px}
-    .muted{color:#94a3b8}
-    #ticker{position:absolute;bottom:0;left:0;width:100%;background:#c62828;color:#fff;font-size:40px;font-weight:700;overflow:hidden;white-space:nowrap;padding:14px 0;z-index:998}
-#ticker span{display:inline-block;padding-left:100%;animation:run linear infinite}
-@keyframes run{to{transform:translateX(-100%)}}
-#board{position:relative;padding-bottom:100px}
+    .nav-link{color:#38bdf8;cursor:pointer;text-decoration:underline;font-size:16px;margin-bottom:10px;display:inline-block}
+    .staff-container{background:#1e293b;padding:20px;border-radius:12px;margin-top:20px;max-width:600px}
+    .staff-container input, .staff-container select{width:100%;padding:10px;margin-bottom:10px;background:#0f172a;border:1px solid #334155;color:#fff;border-radius:6px;font-family:'Sarabun'}
+    .staff-container button{padding:10px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700;font-family:'Sarabun'}
+    .staff-container button:hover{background:#1d4ed8}
   </style>
 </head>
 <body>
-  <div id="connectionStatus">กำลังเชื่อมต่อ...</div>
-  <div id="soundHint">🔊 คลิกเพื่อเปิดเสียง</div>
 
-  <!-- หน้าจอแสดงผล (Board) -->
-  <div id="board">
+  <div id="connectionStatus">กำลังเชื่อมต่อ...</div>
+
+  <!-- หน้าจอแสดงผลคิว (Public View) -->
+  <div id="publicView" class="board">
     <div class="top">
       <div>
-        <span class="hospital-title">โรงพยาบาลบางแพ</span>
+        <span class="hospital-title">โรงพยาบาลบางบัวทอง</span>
         <h1>ห้องฉุกเฉิน — ลำดับการรับบริการ</h1>
       </div>
-      <div style="display:flex;gap:16px;align-items:center;">
-        <a href="#staff" onclick="switchView('staff')" style="color:#38bdf8;font-size:14px;text-decoration:none;">[ ไปหน้าเจ้าหน้าที่ ]</a>
-        <div id="clock">--:--:--</div>
-      </div>
+      <div id="clock">--:--:--</div>
     </div>
+
+    <a class="nav-link" onclick="switchView('staff')">[ ไปหน้าเจ้าหน้าที่ ]</a>
+
     <div id="nowCalling">
-      <div class="muted">รอเรียกคิว...</div>
-    </div>
-    <div class="lanes" id="lanesContainer"></div>
-            <div id="ticker">
-      <span id="ticker-text">
-        ผู้ป่วยอยู่ในภาวะเร่งด่วนและมีอันตรายใกล้ต่อชีวิตจะได้รับการรักษาก่อน
-        &nbsp;&nbsp;
-        บุคลากรสาธารณสุขจะให้การรักษาตามลำดับความเร่งด่วนทางการแพทย์เป็นสำคัญ
-      </span>
+      <div style="font-size:28px;font-weight:600;">รอเรียกคิว...</div>
     </div>
   </div>
-</div>
 
-<!-- หน้าจอเจ้าหน้าที่ (Staff) -->
-<div id="staff" class="hidden">
-  <div id="staff" class="hidden">
-    <div class="top" style="margin-bottom:16px;">
-      <h2>ระบบจัดการคิวห้องฉุกเฉิน (เจ้าหน้าที่)</h2>
-      <a href="#board" onclick="switchView('board')" style="color:#0284c7;font-weight:600;">[ กลับหน้าจอแสดงผล ]</a>
+  <!-- หน้าจอเจ้าหน้าที่ (Staff View) -->
+  <div id="staffView" class="board hidden">
+    <div class="top">
+      <h1>ระบบจัดการคิว (เจ้าหน้าที่)</h1>
     </div>
+    <a class="nav-link" onclick="switchView('public')">[ กลับไปหน้าจอแสดงคิว ]</a>
 
-    <div class="card">
-      <h3>เพิ่มคิวใหม่</h3>
-      <div class="row">
-        <select id="inLevel">
-          <option value="red">แดง - วิกฤต</option>
-          <option value="pink">ชมพู - ฉุกเฉินเร่งด่วน</option>
-          <option value="yellow">เหลือง - เร่งด่วน</option>
-          <option value="green">เขียว - ไม่รุนแรง</option>
-          <option value="white">ขาว - ทั่วไป</option>
-        </select>
-        <input type="text" id="inCode" placeholder="เลขคิว (เช่น Y01)" style="width:110px;">
-        <input type="text" id="inHn" placeholder="HN (เช่น 12345)" style="width:110px;">
-        <input type="text" id="inName" placeholder="ชื่อ-สกุล" style="width:170px;">
-        
-        <input type="text" id="inServiceStatus" list="statusList" placeholder="สถานะการรับบริการ" style="width:200px;" value="รอพบแพทย์">
-        <datalist id="statusList">
-          <option value="รอพบแพทย์">
-          <option value="กำลังตรวจรักษา">
-          <option value="รอผลเลือด / แล็บ">
-          <option value="รอเอกซเรย์ (X-ray)">
-          <option value="สังเกตอาการ">
-          <option value="กำลังช่วยฟื้นคืนชีพ (CPR)">
-          <option value="นอนพักค้าง / รอส่งต่อ">
-        </datalist>
-
-        <button class="ok" onclick="addQueue()">เพิ่มคิว</button>
-      </div>
-    </div>
-
-    <div class="card">
-           <div class="card">
-        <h3>ผู้ป่วยในคิว</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>คิว</th>
-              <th>HN / ชื่อ-สกุล</th>
-              <th>ระดับ</th>
-              <th>Re-triage</th>
-              <th>สถานะบริการ</th>
-              <th>สถานะเรียก</th>
-              <th>รอ (นาที)</th>
-              <th>จัดการ</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-    
-    <div class="card">
-      <button class="danger" onclick="resetAll()">ล้างข้อมูลทั้งหมด</button>
+    <div class="staff-container">
+      <h3>เรียกคิวผู้ป่วย</h3>
+      <input type="text" id="queueNumberInput" placeholder="ระบุเลขคิว เช่น A001">
+      <select id="queueLevelInput">
+        <option value="ฉุกเฉินวิกฤต (Resuscitation)">ฉุกเฉินวิกฤต (Resuscitation)</option>
+        <option value="ฉุกเฉินรุนแรง (Emergency)">ฉุกเฉินรุนแรง (Emergency)</option>
+        <option value="ฉุกเฉินด่วน (Urgent)">ฉุกเฉินด่วน (Urgent)</option>
+        <option value="ไม่ฉุกเฉิน (Non-Urgent)">ไม่ฉุกเฉิน (Non-Urgent)</option>
+      </select>
+      <input type="text" id="roomInput" placeholder="ระบุห้องตรวจ เช่น ห้องฉุกเฉิน 1">
+      <button onclick="callQueueSubmit()">เรียกคิวนี้</button>
+      <button onclick="clearQueueSubmit()" style="background:#dc2626;margin-left:10px;">เคลียร์คิว</button>
     </div>
   </div>
 
   <script>
     const socket = io();
-
-    const LEVELS = [
-      { key: 'red', name: 'แดง', label: 'วิกฤต', target: 0, color: '#dc2626', text: '#fff' },
-      { key: 'pink', name: 'ชมพู', label: 'ฉุกเฉินเร่งด่วน', target: 10, color: '#ec4899', text: '#fff' },
-      { key: 'yellow', name: 'เหลือง', label: 'เร่งด่วน', target: 30, color: '#facc15', text: '#000' },
-      { key: 'green', name: 'เขียว', label: 'ไม่รุนแรง', target: 60, color: '#16a34a', text: '#fff' },
-      { key: 'white', name: 'ขาว', label: 'ทั่วไป', target: 120, color: '#f8fafc', text: '#000' }
-    ];
-    const SERVICE_STATUSES = ['รอพบแพทย์', 'กำลังตรวจรักษา', 'รอผลเลือด / แล็บ', 'รอเอกซเรย์ (X-ray)', 'สังเกตอาการ', 'กำลังช่วยฟื้นคืนชีพ (CPR)', 'นอนพักค้าง / รอส่งต่อ'];
-
-    let state = { queues: [], calling: null };
-    let audioUnlocked = false;
-
-    // ฟังก์ชันสำหรับแปลงนามสกุลให้เป็น *** (เช่น สมชาย ใจดี -> สมชาย ใจ***)
-    function maskName(fullName) {
-      if (!fullName) return '';
-      const parts = fullName.trim().split(/\s+/);
-      if (parts.length > 1) {
-        const lastName = parts[parts.length - 1];
-        const maskedLastName = lastName.charAt(0) + '***';
-        parts[parts.length - 1] = maskedLastName;
-        return parts.join(' ');
-      }
-      return fullName;
-    }
-
-    document.getElementById('soundHint').addEventListener('click', () => {
-      audioUnlocked = true;
-      document.getElementById('soundHint').style.display = 'none';
-    });
+    const connStatus = document.getElementById('connectionStatus');
 
     socket.on('connect', () => {
-      document.getElementById('connectionStatus').innerText = 'เชื่อมต่อแล้ว';
-      document.getElementById('connectionStatus').classList.add('connected');
+      connStatus.textContent = 'เชื่อมต่อแล้ว';
+      connStatus.classList.add('connected');
     });
 
     socket.on('disconnect', () => {
-      document.getElementById('connectionStatus').innerText = 'ขาดการเชื่อมต่อ';
-      document.getElementById('connectionStatus').classList.remove('connected');
+      connStatus.textContent = 'ขาดการเชื่อมต่อ';
+      connStatus.classList.remove('connected');
     });
 
-    socket.on('init-state', (serverState) => {
-      state = serverState;
-      render();
-    });
-
-    socket.on('sync-state', (serverState) => {
-      state = serverState;
-      render();
-    });
-
-    socket.on('call-queue', (item) => {
-      state.calling = item;
-      render();
-      playAlertSound();
-    });
-
+    // ฟังก์ชันสลับหน้าจอ (แก้ปัญหา switchView is not defined)
     function switchView(view) {
+      const publicView = document.getElementById('publicView');
+      const staffView = document.getElementById('staffView');
       if (view === 'staff') {
-        document.getElementById('board').classList.add('hidden');
-        document.getElementById('staff').classList.remove('hidden');
+        publicView.classList.add('hidden');
+        staffView.classList.remove('hidden');
       } else {
-        document.getElementById('staff').classList.add('hidden');
-        document.getElementById('board').classList.remove('hidden');
+        staffView.classList.add('hidden');
+        publicView.classList.remove('hidden');
       }
     }
 
-    function addQueue() {
-      const level = document.getElementById('inLevel').value;
-      const code = document.getElementById('inCode').value.trim();
-      const hn = document.getElementById('inHn').value.trim();
-      const name = document.getElementById('inName').value.trim();
-      const serviceStatus = document.getElementById('inServiceStatus').value.trim() || 'รอพบแพทย์';
-      
-      if (!code) return alert('กรุณากรอกเลขคิว (เช่น Y01)');
-      if (!name) return alert('กรุณากรอกชื่อ-สกุล');
-      
-      socket.emit('add-queue', { level, code, hn, name, serviceStatus });
-      document.getElementById('inCode').value = '';
-      document.getElementById('inHn').value = '';
-      document.getElementById('inName').value = '';
-      document.getElementById('inServiceStatus').value = 'รอพบแพทย์';
-    }
-
-    function callQueue(id, room) {
-      socket.emit('call-queue', { id, room });
-    }
-
-    function updateStatus(id, serviceStatus) {
-      socket.emit('update-status', { id, serviceStatus });
-    }
-
-    function finishQueue(id) {
-      socket.emit('finish-queue', { id });
-    }
-
-    function removeQueue(id) {
-      if (confirm('ต้องการลบคิวนี้ใช่หรือไม่?')) {
-        socket.emit('remove-queue', { id });
-      }
-    }
-
-    function resetAll() {
-      if (confirm('คำเตือน: ข้อมูลคิวทั้งหมดจะถูกลบ!')) {
-        socket.emit('reset-all');
-      }
-    }
-
-    function playAlertSound() {
-      if (!audioUnlocked) return;
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.4);
-      } catch (e) {
-        console.log(e);
-      }
-    }
-
-    function render() {
-      const nc = document.getElementById('nowCalling');
-      if (state.calling) {
-        const c = state.calling;
-        const lvlObj = LEVELS.find(l => l.key === c.level) || {};
-        nc.className = 'flash';
-        nc.innerHTML = `
-          <div class="lvl" style="background:${lvlObj.color}; color:${lvlObj.text}">${lvlObj.name} - ${lvlObj.label}</div>
-          <div class="q">${c.code}</div>
-          <div class="info">${maskName(c.name)} <small>(${c.hn || 'ไม่มี HN'})</small></div>
-          <div class="room">📍 ${c.room || 'ห้องฉุกเฉิน'}</div>
-        `;
-        setTimeout(() => nc.classList.remove('flash'), 4000);
-      } else {
-        nc.innerHTML = `<div class="muted">รอเรียกคิว...</div>`;
-      }
-
-      const container = document.getElementById('lanesContainer');
-      container.innerHTML = '';
-      LEVELS.forEach(lvl => {
-        const items = state.queues.filter(q => q.level === lvl.key && q.status === 'waiting');
-        const lane = document.createElement('div');
-        lane.className = 'lane';
-        lane.innerHTML = `
-          <h2 style="background:${lvl.color}; color:${lvl.text}">${lvl.name} (${items.length})</h2>
-          <ul>${items.slice(0, 6).map(q => `
-            <li>
-              <div>
-                <span class="qb" style="background:${lvl.color}; color:${lvl.text}">${q.code}</span>
-                <span>${maskName(q.name)}</span>
-                <br><span class="status-badge">${q.serviceStatus || 'รอพบแพทย์'}</span>
-              </div>
-              <div class="wait">${Math.floor((Date.now() - q.time) / 60000)} นาที</div>
-            </li>`).join('')}
-          </ul>
-        `;
-        container.appendChild(lane);
-      });
-    const tbody = document.getElementById('tbody');
-    tbody.innerHTML = state.queues.map(q => {
-      const fullName = q.name || '';
-      const lvlObj = LEVELS.find(l => l.key === q.level) || {};
-      const waitMin = Math.floor((Date.now() - q.time) / 60000);
-      return `
-        <tr>
-          <td><span class="tag" style="background:${lvlObj.color}; color:${lvlObj.text}">${q.code}</span></td>
-          <td><b>${maskName(fullName)}</b><br><small>HN: ${q.hn || '-'}</small></td>
-          <td>${lvlObj.name}</td>
-          <td>
-            <select onchange="updateLevel('${q.id}', this.value)" style="font-weight:bold; color:${lvlObj.color}; padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; background: #fff; cursor: pointer;">
-              <option value="red" ${q.level === 'red' ? 'selected' : ''}>[ แดง - วิกฤต ]</option>
-              <option value="pink" ${q.level === 'pink' ? 'selected' : ''}>[ ชมพู - ฉุกเฉินเร่งด่วน ]</option>
-              <option value="yellow" ${q.level === 'yellow' ? 'selected' : ''}>[ เหลือง - เร่งด่วน ]</option>
-              <option value="green" ${q.level === 'green' ? 'selected' : ''}>[ เขียว - ไม่รุนแรง ]</option>
-              <option value="white" ${q.level === 'white' ? 'selected' : ''}>[ ขาว - ทั่วไป ]</option>
-            </select>
-          </td>
-          <td>
-            <select onchange="updateStatus('${q.id}', this.value)" style="padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; background: #fff; cursor: pointer;">
-              ${SERVICE_STATUSES.map(s => `<option ${q.serviceStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
-          </td>
-          <td>${q.calledCount ? `เรียกแล้ว (${q.calledCount})` : 'ยังไม่เรียก'}</td>
-          <td id="wait-${q.id}">${waitMin}</td>
-          <td>
-            <button class="ok" onclick="callQueue('${q.id}', 'ห้องฉุกเฉิน')">เรียก</button>
-            <button onclick="finishQueue('${q.id}')" style="background:#0284c7; color:#fff; border:none;">เสร็จ</button>
-            <button class="danger" onclick="removeQueue('${q.id}')">ลบ</button>
-          </td>
-        </tr>
-      `;
-    }).join('');
-            <td>${waitMin} นาที</td>
-            <td>${q.calledCount ? `เรียกแล้ว (${q.calledCount})` : 'ยังไม่เรียก'}</td>
-            <td>
-              <button class="ok" onclick="callQueue('${q.id}', 'ห้องฉุกเฉิน')">เรียก</button>
-              <button onclick="finishQueue('${q.id}')" style="background:#0284c7;color:#fff;border:none;">เสร็จ</button>
-              <button class="danger" onclick="removeQueue('${q.id}')">ลบ</button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function updateLevel(id, newLevel) {
-  if (typeof socket !== 'undefined') {
-    socket.emit('updateLevel', { id, newLevel });
-  }
-}
-function switchView(view) {
-  if (view === 'staff') {
-    document.getElementById('board').classList.add('hidden');
-    document.getElementById('staff').classList.remove('hidden');
-  } else {
-    document.getElementById('staff').classList.add('hidden');
-    document.getElementById('board').classList.remove('hidden');
-  }
-}
-
+    // อัปเดตนาฬิกา
     setInterval(() => {
       const now = new Date();
-      document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
+      document.getElementById('clock').textContent = now.toLocaleTimeString('th-TH');
     }, 1000);
+
+    // รับข้อมูลคิวจากเซิร์ฟเวอร์
+    socket.on('updateQueue', (data) => {
+      const callingDiv = document.getElementById('nowCalling');
+      if (data.currentCalling) {
+        callingDiv.innerHTML = `
+          <div class="q">${data.currentCalling.number}</div>
+          <div class="lvl">${data.currentCalling.level}</div>
+          <div class="room">${data.currentCalling.room}</div>
+        `;
+        callingDiv.classList.add('flash');
+        setTimeout(() => callingDiv.classList.remove('flash'), 3200);
+      } else {
+        callingDiv.innerHTML = `<div style="font-size:28px;font-weight:600;">รอเรียกคิว...</div>`;
+      }
+    });
+
+    // ส่งข้อมูลเมื่อเจ้าหน้าที่กดเรียกคิว
+    function callQueueSubmit() {
+      const number = document.getElementById('queueNumberInput').value.trim();
+      const level = document.getElementById('queueLevelInput').value;
+      const room = document.getElementById('roomInput').value.trim() || 'ห้องตรวจฉุกเฉิน';
+
+      if (!number) {
+        alert('กรุณากรอกเลขคิว');
+        return;
+      }
+
+      socket.emit('callQueue', { number, level, room });
+      document.getElementById('queueNumberInput').value = '';
+    }
+
+    // ส่งข้อมูลเมื่อเจ้าหน้าที่เคลียร์คิว
+    function clearQueueSubmit() {
+      socket.emit('clearQueue');
+    }
   </script>
-    <script>
-(function(){
-  const SPEED = 120;
-  function setTickerSpeed(){
-    const s = document.getElementById('ticker-text');
-    if(s) s.style.animationDuration = (s.offsetWidth / SPEED) + 's';
-  }
-  window.addEventListener('load', setTickerSpeed);
-  window.addEventListener('resize', setTickerSpeed);
-  setTickerSpeed();
-})();
-</script>
 </body>
 </html>
