@@ -15,14 +15,14 @@
     .conn-badge.connected{background:#16a34a}
 
     /* Triage Staff View */
-    #staffView{padding:20px;max-width:1400px;margin:0 auto;width:100%}
+    #staffView{padding:20px;max-width:1450px;margin:0 auto;width:100%}
     .staff-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;background:#1e293b;padding:15px 20px;border-radius:12px;border:1px solid #334155}
     .staff-header h2{font-size:22px;color:#38bdf8}
     
     .card-box{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px}
     .form-grid{display:grid;grid-template-columns:1fr 2fr 1.5fr 1.8fr 1.2fr auto;gap:10px;align-items:center}
     input, select{width:100%;padding:10px 12px;background:#0f172a;border:1px solid #475569;color:#fff;border-radius:8px;font-size:14px}
-    button{padding:10px 16px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;transition:opacity .2s}
+    button{padding:8px 14px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;transition:opacity .2s}
     button:hover{opacity:0.9}
     .btn-primary{background:#2563eb;color:#fff}
     .btn-success{background:#16a34a;color:#fff}
@@ -165,7 +165,7 @@
     </div>
 
     <div class="card-box">
-      <h3 style="margin-bottom:12px">ผู้ป่วยในคิวทั้งหมด (สามารถ Re-triage และเปลี่ยนสถานะได้ทันที)</h3>
+      <h3 style="margin-bottom:12px">ผู้ป่วยในคิวทั้งหมด (สามารถ Re-triage, เปลี่ยนสถานะ และจัดการได้)</h3>
       <table>
         <thead>
           <tr>
@@ -389,8 +389,11 @@
           </td>
           <td>${p.timeIn}</td>
           <td>
-            <button class="btn-primary" style="padding:5px 10px;font-size:12px" onclick="updatePatientAction(${p.id}, 'callAgain')">เรียก</button>
-            <button class="btn-success" style="padding:5px 10px;font-size:12px" onclick="updatePatientAction(${p.id}, 'finish')">เสร็จ</button>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="btn-primary" style="padding:5px 10px;font-size:12px" onclick="updatePatientAction(${p.id}, 'callAgain')">เรียก</button>
+              <button class="btn-success" style="padding:5px 10px;font-size:12px" onclick="updatePatientAction(${p.id}, 'finish')">เสร็จ</button>
+              <button class="btn-danger" style="padding:5px 10px;font-size:12px" onclick="updatePatientAction(${p.id}, 'delete')">ลบ</button>
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
