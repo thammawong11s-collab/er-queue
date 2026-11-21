@@ -160,6 +160,7 @@
           <option value="ห้องทำแผล">ห้องทำแผล</option>
         </select>
         <button class="btn-primary" style="flex:1" onclick="callNext()">📢 เรียกคิวถัดไป (ตามความเร่งด่วนทางการแพทย์)</button>
+        <button class="btn-success" style="background:#ca8a04;color:#fff" onclick="callAgainSound()">🔄 เรียกซ้ำ (เสียงพูด)</button>
         <button class="btn-danger" onclick="resetAllData()">ล้างข้อมูลทั้งหมด</button>
       </div>
     </div>
@@ -281,6 +282,54 @@
       green: 'badge-green',
       white: 'badge-white'
     };
+
+    // ฟังก์ชันเล่นเสียงประกาศตามเลขคิวและห้องตรวจ
+    function playQueueSound(queueNoStr, roomName) {
+      const audioFiles = ['audio/intro.mp3']; // "ขอเชิญหมายเลข"
+      
+      for (let char of queueNoStr) {
+        if (/[0-9]/.test(char)) {
+          audioFiles.push(`audio/${char}.mp3`);
+        }
+      }
+      
+      audioFiles.push('audio/at.mp3'); // "ที่"
+
+      if (roomName.includes('ฉุกเฉิน')) {
+        audioFiles.push('audio/er.mp3'); // "ห้องฉุกเฉิน"
+      } else if (roomName.includes('ทำแผล') || roomName.includes('ฉีดยา')) {
+        audioFiles.push('audio/dressing.mp3'); // "ห้องฉีดยาทำแผล"
+      } else {
+        audioFiles.push('audio/er.mp3');
+      }
+
+      let index = 0;
+      function playNext() {
+        if (index < audioFiles.length) {
+          const audio = new Audio(audioFiles[index]);
+          audio.play().then(() => {
+            audio.onended = () => {
+              index++;
+              playNext();
+            };
+          }).catch(err => {
+            console.log("Audio play error:", err);
+            index++;
+            playNext();
+          });
+        }
+      }
+      playNext();
+    }
+
+    // ฟังก์ชันสำหรับกดปุ่มเรียกซ้ำ (เล่นเสียงประกาศเดิมซ้ำอีกรอบ)
+    function callAgainSound() {
+      if (window.lastCallingData) {
+        playQueueSound(window.lastCallingData.queueNo, window.lastCallingData.room);
+      } else {
+        alert('ยังไม่มีคิวที่กำลังถูกเรียกในขณะนี้');
+      }
+    }
 
     function maskFullName(nameStr) {
       if (!nameStr) return '';
@@ -408,6 +457,15 @@
       if (data.currentCalling) {
         const c = data.currentCalling;
         if (!c.maskedName) c.maskedName = maskFullName(c.fullName);
+
+        // เก็บข้อมูลไว้สำหรับปุ่มเรียกซ้ำ
+        window.lastCallingData = c;
+
+        // เล่นเสียงประกาศเมื่อมีการเรียกคิวใหม่
+        if (window.lastCalledId !== c.id) {
+          window.lastCalledId = c.id;
+          playQueueSound(c.queueNo, c.room);
+        }
 
         callNo.textContent = c.queueNo;
         callNo.className = `calling-q ${levelBadgeClass[c.level]}`;
