@@ -35,12 +35,16 @@
     th, td{padding:12px 14px;text-align:left;border-bottom:1px solid #334155;font-size:14px}
     th{color:#94a3b8;font-weight:600;background:#0f172a}
     
-    /* Level Badges & Select */
-    .badge-red{background:#dc2626;color:#fff;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;display:inline-block}
-    .badge-pink{background:#db2777;color:#fff;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;display:inline-block}
-    .badge-yellow{background:#ca8a04;color:#fff;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;display:inline-block}
-    .badge-green{background:#16a34a;color:#fff;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;display:inline-block}
-    .badge-white{background:#f8fafc;color:#0f172a;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;display:inline-block}
+    /* Level Badges & Colors */
+    .badge-red, .bg-red{background:#dc2626;color:#fff}
+    .badge-pink, .bg-pink{background:#db2777;color:#fff}
+    .badge-yellow, .bg-yellow{background:#ca8a04;color:#fff}
+    .badge-green, .bg-green{background:#16a34a;color:#fff}
+    .badge-white, .bg-white{background:#f8fafc;color:#0f172a}
+
+    .badge-red, .badge-pink, .badge-yellow, .badge-green, .badge-white {
+      padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;display:inline-block;
+    }
 
     /* Public Display Board View */
     #publicView{padding:24px;min-height:100vh;display:flex;flex-direction:column;gap:20px}
@@ -51,7 +55,10 @@
 
     .calling-banner{background:#1e293b;border:3px solid #475569;border-radius:16px;padding:24px 30px;display:flex;align-items:center;justify-content:space-between;min-height:160px}
     .calling-left{display:flex;align-items:center;gap:30px}
-    .calling-q{font-size:72px;font-weight:800;background:#dc2626;color:#fff;padding:0 24px;border-radius:12px;line-height:1.2}
+    
+    /* กล่องเลขคิวใหญ่ (ปรับเปลี่ยนสีตามระดับความฉุกเฉิน) */
+    .calling-q{font-size:72px;font-weight:800;padding:0 24px;border-radius:12px;line-height:1.2;transition:background 0.3s, color 0.3s}
+    
     .calling-info h2{font-size:40px;color:#fff;font-weight:800;margin-bottom:4px}
     .calling-info p{font-size:20px;color:#94a3b8}
     .calling-room{font-size:38px;font-weight:800;color:#38bdf8}
@@ -154,7 +161,8 @@
 
     <div class="calling-banner" id="callingBanner">
       <div class="calling-left">
-        <div class="calling-q" id="pubCallNo">-</div>
+        <!-- กล่องเลขคิวเปลี่ยนสีตามระดับความฉุกเฉิน -->
+        <div class="calling-q bg-red" id="pubCallNo">-</div>
         <div class="calling-info">
           <p id="pubCallLevelBadge" class="badge-red" style="margin-bottom:6px">รอระบุ</p>
           <h2 id="pubCallName">รอเรียกคิวรับบริการ...</h2>
@@ -231,6 +239,14 @@
       yellow: 'badge-yellow',
       green: 'badge-green',
       white: 'badge-white'
+    };
+
+    const levelBgClass = {
+      red: 'bg-red',
+      pink: 'bg-pink',
+      yellow: 'bg-yellow',
+      green: 'bg-green',
+      white: 'bg-white'
     };
 
     function addQueue() {
@@ -323,6 +339,10 @@
       if (data.currentCalling) {
         const c = data.currentCalling;
         callNo.textContent = c.queueNo;
+        
+        // ล้างคลาสสีเดิมทั้งหมด แล้วใส่สีใหม่ตามระดับความฉุกเฉิน
+        callNo.className = `calling-q ${levelBgClass[c.level]}`;
+
         callName.textContent = c.fullName;
         callLevel.className = levelBadgeClass[c.level];
         callLevel.textContent = levelMapName[c.level];
@@ -330,6 +350,7 @@
         callRoom.textContent = `→ ${c.room}`;
       } else {
         callNo.textContent = '-';
+        callNo.className = 'calling-q bg-red';
         callName.textContent = 'รอเรียกคิวรับบริการ...';
         callLevel.className = 'badge-red';
         callLevel.textContent = '-';
