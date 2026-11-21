@@ -143,6 +143,7 @@
           <option value="นอนพักสังเกตอาการ">นอนพักสังเกตอาการ</option>
           <option value="รอผลเลือด/X-ray">รอผลเลือด/X-ray</option>
           <option value="ทำแผล / ฉีดยา">ทำแผล / ฉีดยา</option>
+          <option value="นอนโรงพยาบาล">นอนโรงพยาบาล</option>
           <option value="ส่งต่อโรงพยาบาล">ส่งต่อโรงพยาบาล</option>
           <option value="จำหน่ายกลับบ้าน">จำหน่ายกลับบ้าน</option>
         </select>
@@ -281,10 +282,9 @@
       white: 'badge-white'
     };
 
-    // ฟังก์ชันช่วยแปลงชื่อ-นามสกุลให้เป็นแบบเซนเซอร์นามสกุลอัตโนมัติ (เช่น "ฉวี ออนงค์ทอง" -> "ฉวี ออนงค์***")
     function maskFullName(nameStr) {
       if (!nameStr) return '';
-      if (nameStr.includes('***')) return nameStr; // ถ้าใส่มาอยู่แล้วให้ใช้ตามนั้น
+      if (nameStr.includes('***')) return nameStr;
       const parts = nameStr.trim().split(/\s+/);
       if (parts.length > 1) {
         let lastName = parts[parts.length - 1];
@@ -310,7 +310,6 @@
         return;
       }
 
-      // ทำการเซนเซอร์นามสกุลให้อัตโนมัติสำหรับหน้าจอ Public
       const maskedName = maskFullName(rawName);
 
       socket.emit('addQueue', { queueNo, fullName: rawName, maskedName, level, treatmentStatus, room });
@@ -357,7 +356,6 @@
       });
 
       data.queueList.forEach(p => {
-        // หากข้อมูลเก่าไม่มี maskedName ให้สร้างสำรองไว้
         if (!p.maskedName) p.maskedName = maskFullName(p.fullName);
 
         if (p.status !== 'เสร็จสิ้น') {
@@ -384,6 +382,7 @@
               <option value="นอนพักสังเกตอาการ" ${p.treatmentStatus === 'นอนพักสังเกตอาการ' ? 'selected' : ''}>นอนพักสังเกตอาการ</option>
               <option value="รอผลเลือด/X-ray" ${p.treatmentStatus === 'รอผลเลือด/X-ray' ? 'selected' : ''}>รอผลเลือด/X-ray</option>
               <option value="ทำแผล / ฉีดยา" ${p.treatmentStatus === 'ทำแผล / ฉีดยา' ? 'selected' : ''}>ทำแผล / ฉีดยา</option>
+              <option value="นอนโรงพยาบาล" ${p.treatmentStatus === 'นอนโรงพยาบาล' ? 'selected' : ''}>นอนโรงพยาบาล</option>
               <option value="ส่งต่อโรงพยาบาล" ${p.treatmentStatus === 'ส่งต่อโรงพยาบาล' ? 'selected' : ''}>ส่งต่อโรงพยาบาล</option>
               <option value="จำหน่ายกลับบ้าน" ${p.treatmentStatus === 'จำหน่ายกลับบ้าน' ? 'selected' : ''}>จำหน่ายกลับบ้าน</option>
             </select>
@@ -410,7 +409,7 @@
         callNo.textContent = c.queueNo;
         callNo.className = `calling-q ${levelBadgeClass[c.level]}`;
 
-        callName.textContent = c.maskedName; // แสดงชื่อที่เซนเซอร์แล้วบนจอใหญ่
+        callName.textContent = c.maskedName;
         callLevel.className = levelBadgeClass[c.level];
         callLevel.textContent = levelMapName[c.level];
         callStatus.textContent = `สถานะ: ${c.treatmentStatus}`;
