@@ -29,7 +29,12 @@ io.on('connection', (socket) => {
       room: patient.room,
       treatmentStatus: patient.treatmentStatus,
       status: 'รอพบแพทย์',
-      timeIn: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+            timeIn: new Date().toLocaleTimeString('th-TH', { 
+        timeZone: 'Asia/Bangkok', 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      })
     };
     
     queueData.queueList.push(newPatient);
