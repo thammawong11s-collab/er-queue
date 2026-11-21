@@ -11,20 +11,24 @@ app.use(express.static(path.join(__dirname)));
 
 let queueData = {
   currentCalling: null,
-  queueList: []
+  queueList: [],
+  tickerText: "ผู้ป่วยอยู่ในภาวะเร่งด่วนและมีอันตรายใกล้ต่อชีวิต"
 };
 
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
   socket.emit('syncState', queueData);
 
-  // ออกคิวใหม่
+  socket.addQueue = (patient) => {
+    // ...
+  };
+
   socket.on('addQueue', (patient) => {
     const newPatient = {
       id: Date.now(),
       queueNo: patient.queueNo,
       fullName: patient.fullName,
-      level: patient.level, // red, pink, yellow, green, white
+      level: patient.level,
       room: patient.room,
       treatmentStatus: patient.treatmentStatus,
       status: 'รอพบแพทย์',
@@ -35,7 +39,6 @@ io.on('connection', (socket) => {
     io.emit('syncState', queueData);
   });
 
-  // เรียกคิวถัดไปตามความเร่งด่วน (แดง -> ชมพู -> เหลือง -> เขียว -> ขาว)
   socket.on('callNext', (room) => {
     const priorityOrder = { red: 1, pink: 2, yellow: 3, green: 4, white: 5 };
     
@@ -52,7 +55,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // อัปเดตข้อมูลผู้ป่วยรายเคส (เปลี่ยนสถานะ, Re-triage ระดับความฉุกเฉิน, เรียกซ้ำ, เสร็จสิ้น)
   socket.on('actionPatient', ({ id, action, value }) => {
     const target = queueData.queueList.find(p => p.id === id);
     if (!target) return;
@@ -63,8 +65,7 @@ io.on('connection', (socket) => {
     } else if (action === 'updateTreatmentStatus') {
       target.treatmentStatus = value;
     } else if (action === 'updateLevel') {
-      target.level = value; // Re-triage เปลี่ยนระดับความฉุกเฉิน
-      // ถ้าเคสนี้กำลังเรียกอยู่บนจอ ให้ sync ข้อมูล currentCalling ด้วย
+      target.level = value;
       if (queueData.currentCalling && queueData.currentCalling.id === id) {
         queueData.currentCalling.level = value;
       }
@@ -78,9 +79,17 @@ io.on('connection', (socket) => {
     io.emit('syncState', queueData);
   });
 
-  // ล้างข้อมูลทั้งหมด
+  socket.on('updateTicker', (text) => {
+    queueData.tickerText = text;
+    io.emit('syncState', queueData);
+  });
+
   socket.on('resetAll', () => {
-    queueData = { currentCalling: null, queueList: [] };
+    queueData = { 
+      currentCalling: null, 
+      queueList: [], 
+      tickerText: queueData.tickerText 
+    };
     io.emit('syncState', queueData);
   });
 
