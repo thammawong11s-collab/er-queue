@@ -19,15 +19,12 @@ io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
   socket.emit('syncState', queueData);
 
-  socket.addQueue = (patient) => {
-    // ...
-  };
-
   socket.on('addQueue', (patient) => {
     const newPatient = {
       id: Date.now(),
       queueNo: patient.queueNo,
       fullName: patient.fullName,
+      maskedName: patient.maskedName,
       level: patient.level,
       room: patient.room,
       treatmentStatus: patient.treatmentStatus,
@@ -56,6 +53,15 @@ io.on('connection', (socket) => {
   });
 
   socket.on('actionPatient', ({ id, action, value }) => {
+    if (action === 'delete') {
+      queueData.queueList = queueData.queueList.filter(p => p.id !== id);
+      if (queueData.currentCalling && queueData.currentCalling.id === id) {
+        queueData.currentCalling = null;
+      }
+      io.emit('syncState', queueData);
+      return;
+    }
+
     const target = queueData.queueList.find(p => p.id === id);
     if (!target) return;
 
