@@ -9,11 +9,9 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname)));
 
-// State ของระบบคิว
 let queueData = {
-  currentCalling: null, // เคสที่กำลังเรียกหน้าจอ
-  queueList: [],        // รายการคิวทั้งหมด
-  counter: 480          // รันเลขคิวเริ่มต้น
+  currentCalling: null,
+  queueList: []
 };
 
 io.on('connection', (socket) => {
@@ -22,30 +20,27 @@ io.on('connection', (socket) => {
 
   // ออกคิวใหม่
   socket.on('addQueue', (patient) => {
-    queueData.counter += 1;
     const newPatient = {
       id: Date.now(),
-      queueNo: queueData.counter,
-      firstName: patient.firstName,
-      lastName: patient.lastName,
-      maskedName: `${patient.firstName} ${patient.lastName.substring(0, 3)}***`,
+      queueNo: patient.queueNo,
+      fullName: patient.fullName,
       level: patient.level, // red, pink, yellow, green, white
-      levelName: patient.levelName,
       room: patient.room,
-      status: 'รอเรียก', // รอเรียก, กำลังเรียก, เสร็จสิ้น
+      treatmentStatus: patient.treatmentStatus,
+      status: 'รอพบแพทย์',
       timeIn: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
     };
+    
     queueData.queueList.push(newPatient);
     io.emit('syncState', queueData);
   });
 
-  // เรียกคิวถัดไป (ตามความเร่งด่วน: แดง -> ชมพู -> เหลือง -> เขียว -> ขาว)
+  // เรียกคิวถัดไปตามความเร่งด่วน (แดง -> ชมพู -> เหลือง -> เขียว -> ขาว)
   socket.on('callNext', (room) => {
     const priorityOrder = { red: 1, pink: 2, yellow: 3, green: 4, white: 5 };
     
-    // กหาคิวที่ยังไม่เสร็จ เรียงตามความสำคัญ
     const waitingCases = queueData.queueList
-      .filter(p => p.status === 'รอเรียก' || p.status === 'เรียกซ้ำ')
+      .filter(p => p.status === 'รอพบแพทย์' || p.status === 'เรียกซ้ำ')
       .sort((a, b) => priorityOrder[a.level] - priorityOrder[b.level]);
 
     if (waitingCases.length > 0) {
@@ -57,16 +52,25 @@ io.on('connection', (socket) => {
     }
   });
 
-  // เรียกซ้ำ / อัปเดตสถานะเฉพาะเคส
-  socket.on('actionPatient', ({ id, action }) => {
+  // อัปเดตข้อมูลผู้ป่วยรายเคส (เปลี่ยนสถานะ, Re-triage ระดับความฉุกเฉิน, เรียกซ้ำ, เสร็จสิ้น)
+  socket.on('actionPatient', ({ id, action, value }) => {
     const target = queueData.queueList.find(p => p.id === id);
     if (!target) return;
 
     if (action === 'callAgain') {
       target.status = 'กำลังเรียก';
       queueData.currentCalling = target;
+    } else if (action === 'updateTreatmentStatus') {
+      target.treatmentStatus = value;
+    } else if (action === 'updateLevel') {
+      target.level = value; // Re-triage เปลี่ยนระดับความฉุกเฉิน
+      // ถ้าเคสนี้กำลังเรียกอยู่บนจอ ให้ sync ข้อมูล currentCalling ด้วย
+      if (queueData.currentCalling && queueData.currentCalling.id === id) {
+        queueData.currentCalling.level = value;
+      }
     } else if (action === 'finish') {
       target.status = 'เสร็จสิ้น';
+      target.treatmentStatus = 'จำหน่ายกลับบ้าน';
       if (queueData.currentCalling && queueData.currentCalling.id === id) {
         queueData.currentCalling = null;
       }
@@ -76,7 +80,7 @@ io.on('connection', (socket) => {
 
   // ล้างข้อมูลทั้งหมด
   socket.on('resetAll', () => {
-    queueData = { currentCalling: null, queueList: [], counter: 480 };
+    queueData = { currentCalling: null, queueList: [] };
     io.emit('syncState', queueData);
   });
 
